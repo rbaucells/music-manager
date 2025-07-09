@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Scene?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<?import javafx.stage.Stage?>
+
+<Stage minHeight="224.5" minWidth="200.0" onCloseRequest="#OnClose" resizable="false" title="Metadata Successfuly Written" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SuccessController">
+    <scene>
+        <Scene>
+         <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="200.0">
+            <children>
+               <Text fill="#0fab0d" strokeType="OUTSIDE" strokeWidth="0.0" text="SUCCESS">
+                  <font>
+                     <Font size="42.0" />
+                  </font>
+               </Text>
+               <Text fx:id="Song" strokeType="OUTSIDE" strokeWidth="0.0" text="Song">
+                  <font>
+                     <Font size="16.0" />
+                  </font>
+               </Text>
+               <Text fx:id="Artist" strokeType="OUTSIDE" strokeWidth="0.0" text="Artist" />
+               <Text fx:id="Album" strokeType="OUTSIDE" strokeWidth="0.0" text="Album" />
+               <Text fx:id="Year" strokeType="OUTSIDE" strokeWidth="0.0" text="Year">
+                  <font>
+                     <Font size="16.0" />
+                  </font>
+               </Text>
+               <ImageView fx:id="imageView" fitHeight="70.0" fitWidth="70.0" pickOnBounds="true" preserveRatio="true" />
+               <Pane maxHeight="10.0" maxWidth="200.0" minHeight="10.0" prefHeight="10.0" prefWidth="200.0" />
+               <Button mnemonicParsing="false" onAction="#OnClose" text="Ok" />
+               <Pane maxHeight="10.0" maxWidth="200.0" minHeight="10.0" prefHeight="10.0" prefWidth="200.0" />
+            </children>
+         </VBox>
+        </Scene>
+    </scene>
+</Stage>

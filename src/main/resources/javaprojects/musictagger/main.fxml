@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Copyright (c) 2015, 2019, Gluon and/or its affiliates.
+  All rights reserved. Use is subject to license terms.
+
+  This file is available and licensed under the following license:
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the distribution.
+  - Neither the name of Oracle Corporation nor the names of its
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Scene?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<?import javafx.stage.Stage?>
+
+<Stage minHeight="320.0" minWidth="530.0" title="Auto Music Tagger" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.MainController">
+    <scene>
+        <Scene fill="RED">
+         <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="240.0" minWidth="530.0" prefHeight="360.0" prefWidth="640.0">
+            <children>
+               <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="60.0">
+                  <children>
+                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="AUTO MUSIC TAGGER">
+                        <font>
+                           <Font size="45.0" />
+                        </font>
+                     </Text>
+                  </children>
+               </VBox>
+               <Pane minHeight="0.0" prefHeight="60.0" prefWidth="640.0" />
+               <VBox alignment="CENTER" minHeight="-Infinity" prefHeight="100.0">
+                  <children>
+                     <TextField fx:id="songNameTextField" alignment="CENTER" maxWidth="500.0" prefHeight="26.0" prefWidth="200.0" promptText="Song Name" />
+                     <Text fx:id="songRequiredText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="↑ REQUIRED ↑" visible="false">
+                        <font>
+                           <Font size="17.0" />
+                        </font>
+                     </Text>
+                     <TextField fx:id="artistNameTextField" alignment="CENTER" maxWidth="500.0" onKeyPressed="#OnEnterKeyPressedInArtistTextField" prefWidth="200.0" promptText="Artist Name" />
+                     <Text fx:id="artistRequiredText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="↑ REQUIRED ↑" visible="false">
+                        <font>
+                           <Font size="17.0" />
+                        </font>
+                     </Text>
+                  </children>
+               </VBox>
+               <Pane minHeight="0.0" prefHeight="30.0" prefWidth="600.0" />
+               <VBox alignment="CENTER" minHeight="-Infinity" prefHeight="65.0">
+                  <children>
+                     <Button fx:id="searchButton" mnemonicParsing="false" onAction="#OnSearchButton" text="Search" />
+                     <Pane minHeight="-Infinity" prefHeight="12.0" prefWidth="100.0" />
+                     <Button fx:id="clearButton" mnemonicParsing="false" onAction="#OnClearButton" text="Clear" />
+                  </children>
+                  <opaqueInsets>
+                     <Insets />
+                  </opaqueInsets>
+               </VBox>
+               <Pane minHeight="10.0" prefHeight="10.0" prefWidth="600.0" />
+            </children>
+         </VBox>
+        </Scene>
+    </scene>
+</Stage>
