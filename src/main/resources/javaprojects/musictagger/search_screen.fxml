@@ -19,7 +19,7 @@
                </Label>
                <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" hmax="0.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                   <content>
-                     <VBox fx:id="ScrollingVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+                     <VBox fx:id="ScrollingVBox" alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
                   </content>
                </ScrollPane>
             </children>

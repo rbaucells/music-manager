@@ -18,6 +18,9 @@ public class ProgressBarController {
     @FXML
     public Label InfoLabel;
 
+    @FXML
+    public Button OkButton;
+
     public DownloadThread downloadThread;
     public Stage myStage;
 

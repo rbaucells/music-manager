@@ -65,7 +65,7 @@ public class MainController {
         stage.show();
         controller.mainController = this;
         controller.stage = stage;
-        controller.OnInitialize(songNameTextField.getText(), artistNameTextField.getText());
+        controller.OnInitialize(songNameTextField.getText(), artistNameTextField.getText(), 1);
     }
 
     public void OnEnterKeyPressedInArtistTextField(KeyEvent event) throws IOException, URISyntaxException, InterruptedException {

@@ -68,11 +68,18 @@ public class DownloadThread extends Thread {
             SetProgressBar("MP3 Formatted", 97);
             Application.ApplyMP3Data(mp3Data, selectedFile);
             SetProgressBar("MP3 Metadata Applied", 100);
+            CloseProgressBar();
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    void CloseProgressBar() {
+        Platform.runLater(() -> {
+            progressBarController.myStage.close();
+        });
     }
 
     void downloadFile(JSONObject eventObject, File selectedFile) throws URISyntaxException, IOException {
@@ -129,9 +136,9 @@ public class DownloadThread extends Thread {
 
 
             if (jsonResponse.getBoolean("error") || jsonResponse.has("status")) {
-                SetProgressBar("Error Starting Conversion, Try again", 15);
-                Thread.sleep(500);
-                this.interrupt();
+                SetProgressBar("Error Starting Conversion, Auto Trying again", 15);
+                CloseProgressBar();
+                start();
             }
 
             SetProgressBar("Conversion Started", 15);

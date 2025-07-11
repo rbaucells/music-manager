@@ -2,8 +2,11 @@ package javaprojects.musictagger;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.json.JSONArray;
@@ -16,6 +19,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SearchScreenController {
     // Labels
@@ -35,13 +39,13 @@ public class SearchScreenController {
 
     public HttpClient httpClient = HttpClient.newHttpClient();
 
-    public void OnInitialize(String songName, String artistName) throws URISyntaxException, IOException, InterruptedException {
+    public void OnInitialize(String songName, String artistName, int page) throws URISyntaxException, IOException, InterruptedException {
         String string = songName.strip() + " | " + artistName.strip();
         SongArtistLabel.setText(string);
 
         stage.setMinWidth(SongArtistLabel.getWidth());
 
-        ArrayList<MP3Data> mp3Datas = GetAllSongData(songName.strip(), artistName.strip());
+        ArrayList<MP3Data> mp3Datas = GetAllSongData(songName.strip(), artistName.strip(), page);
 
         for (int i = 0; i < mp3Datas.size(); i++) {
             FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("search_result.fxml"));
@@ -53,12 +57,41 @@ public class SearchScreenController {
             searchResultController.stage = stage;
             searchResultController.mainController = mainController;
         }
+
+        Button button = new Button();
+        button.setText("See More");
+        button.setOnAction(event -> {
+            try {
+                this.OnInitialize(songName, artistName, page + 1);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        Pane spacerPane = new Pane();
+        spacerPane.setPrefHeight(6);
+        spacerPane.setMaxHeight(6);
+        spacerPane.setMinHeight(6);
+
+        // delete any past buttons or empty spacerPanes if were on a page other than 1
+        if (page > 1) {
+            List<Node> nodesToRemove = new ArrayList<>();
+            for (Node node : ScrollingVBox.getChildren()) {
+                if (node instanceof Button || (node instanceof Pane && !(node instanceof AnchorPane))) {
+                    nodesToRemove.add(node);
+                }
+            }
+            ScrollingVBox.getChildren().removeAll(nodesToRemove);
+        }
+
+        ScrollingVBox.getChildren().add(spacerPane);
+        ScrollingVBox.getChildren().add(button);
     }
 
-    public ArrayList<MP3Data> GetAllSongData(String trackName, String artistName) throws URISyntaxException, IOException, InterruptedException {
+    public ArrayList<MP3Data> GetAllSongData(String trackName, String artistName, int page) throws URISyntaxException, IOException, InterruptedException {
         String accessToken = GetAccessToken();
 
-        JSONObject trackSearchObject = SearchTracks(accessToken, (trackName + " " + artistName).strip());
+        JSONObject trackSearchObject = SearchTracks(accessToken, (trackName + " " + artistName).strip(), page);
 
         if (trackSearchObject == null)
         {
@@ -153,8 +186,11 @@ public class SearchScreenController {
         return null;
     }
 
-    public JSONObject SearchTracks(String accessToken, String searchTerm) throws URISyntaxException, IOException, InterruptedException {
-        URI uri = new URI("https", null, "api.spotify.com", 443, "/v1/search", "q=" + searchTerm + "&type=track&market=US", null);
+    public JSONObject SearchTracks(String accessToken, String searchTerm, int page) throws URISyntaxException, IOException, InterruptedException {
+        int offset = 10 * (page - 1);
+        int limit = 10;
+
+        URI uri = new URI("https", null, "api.spotify.com", 443, "/v1/search", "q=" + searchTerm + "&type=track&market=US&offset=" + offset + "&limit=" + limit, null);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .GET()
