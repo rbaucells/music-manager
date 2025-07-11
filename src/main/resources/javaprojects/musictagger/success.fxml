@@ -9,7 +9,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.stage.Stage?>
 
-<Stage minHeight="224.5" minWidth="200.0" onCloseRequest="#OnClose" resizable="false" title="Metadata Successfuly Written" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SuccessController">
+<Stage minHeight="224.5" minWidth="200.0" onCloseRequest="#OnClose" title="Success" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SuccessController">
     <scene>
         <Scene>
          <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="200.0">

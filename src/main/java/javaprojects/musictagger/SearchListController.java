@@ -21,7 +21,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchScreenController {
+public class SearchListController {
     // Labels
     @FXML
     public Label SongArtistLabel;

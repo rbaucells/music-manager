@@ -1,18 +1,16 @@
 package javaprojects.musictagger;
 
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 public class MainController {
     // Text Fields
@@ -38,6 +36,8 @@ public class MainController {
 
     public Stage mainStage;
 
+    ArrayList<MP3Data> list = new ArrayList<>();
+
     public void OnClearButton() {
         // set requiredTexts to invisible
         songRequiredText.setVisible(false);
@@ -59,18 +59,42 @@ public class MainController {
             return;
         }
 
-        FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("search_screen.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("search_list.fxml"));
         Stage stage = fxmlLoader.load();
-        SearchScreenController controller = fxmlLoader.getController();
+        SearchListController controller = fxmlLoader.getController();
         stage.show();
         controller.mainController = this;
         controller.stage = stage;
         controller.OnInitialize(songNameTextField.getText(), artistNameTextField.getText(), 1);
     }
 
-    public void OnEnterKeyPressedInArtistTextField(KeyEvent event) throws IOException, URISyntaxException, InterruptedException {
+    public void OnEnterKeyPressedInTextField(KeyEvent event) throws IOException, URISyntaxException, InterruptedException {
         if (event.getCode() == KeyCode.ENTER) {
             OnSearchButton();
         }
+    }
+
+    public void AddToList(MP3Data data) {
+        if (!list.contains(data))
+            list.add(data);
+    }
+
+    public void RemoveFromList(MP3Data data) {
+        list.remove(data);
+    }
+
+    public void OnViewList() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("song_list.fxml"));
+        Stage stage = fxmlLoader.load();
+        SongListController songListController = fxmlLoader.getController();
+        songListController.list = list;
+        songListController.mainController = this;
+        songListController.stage = stage;
+        songListController.OnInitialize();
+        stage.show();
+    }
+
+    public void ClearList() {
+        list.clear();
     }
 }

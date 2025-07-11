@@ -25,9 +25,6 @@ public class SuccessController {
     public ImageView imageView;
 
     public Stage thisStage;
-    public Stage SearchScreenStage;
-
-    public MainController mainController;
 
     public void SetMP3Data(MP3Data data) {
         Song.setText(data.trackName);
@@ -38,9 +35,6 @@ public class SuccessController {
     }
 
     public void OnClose() {
-        SearchScreenStage.close();
-        mainController.OnClearButton();
         thisStage.close();
-
     }
 }

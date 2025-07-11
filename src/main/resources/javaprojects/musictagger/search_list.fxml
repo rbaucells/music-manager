@@ -7,7 +7,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.stage.Stage?>
 
-<Stage minHeight="55.0" minWidth="250.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SearchScreenController">
+<Stage minHeight="55.0" minWidth="250.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SearchListController">
     <scene>
         <Scene fill="RED">
          <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="55.0" minWidth="250.0" prefHeight="400.0" prefWidth="600.0">

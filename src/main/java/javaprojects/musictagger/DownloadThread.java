@@ -33,23 +33,6 @@ public class DownloadThread extends Thread {
         this.selectedFile = selectedFile;
     }
 
-    void startLoadingBar() {
-        Platform.runLater(() -> {
-            try {
-                FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("progress_bar.fxml"));
-                Stage loadingStage = fxmlLoader.load();
-                progressBarController = fxmlLoader.getController();
-                progressBarController.myStage = loadingStage;
-                progressBarController.downloadThread = this;
-                loadingStage.show();
-            }
-            catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-        });
-    }
-
     @Override
     public void run() {
         if (selectedFile == null) {
@@ -69,6 +52,7 @@ public class DownloadThread extends Thread {
             Application.ApplyMP3Data(mp3Data, selectedFile);
             SetProgressBar("MP3 Metadata Applied", 100);
             CloseProgressBar();
+            CreateSuccessScreen();
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -76,9 +60,46 @@ public class DownloadThread extends Thread {
         }
     }
 
+    void CreateSuccessScreen() {
+        Platform.runLater(() -> {
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("success.fxml"));
+                Stage successStage = fxmlLoader.load();
+                SuccessController successController = fxmlLoader.getController();
+                successController.SetMP3Data(mp3Data);
+                successController.thisStage = successStage;
+                successStage.show();
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
+    void startLoadingBar() {
+        Platform.runLater(() -> {
+            try {
+                FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("progress_bar.fxml"));
+                Stage loadingStage = fxmlLoader.load();
+                progressBarController = fxmlLoader.getController();
+                progressBarController.stage = loadingStage;
+                progressBarController.onCancelInterface = () -> {
+                    this.interrupt();
+                    progressBarController.close();
+                };
+                loadingStage.show();
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
     void CloseProgressBar() {
         Platform.runLater(() -> {
-            progressBarController.myStage.close();
+            progressBarController.close();
         });
     }
 
@@ -110,9 +131,7 @@ public class DownloadThread extends Thread {
 
     void SetProgressBar(String message, int percent) {
         Platform.runLater(() -> {
-            progressBarController.PercentText.setText("%" + percent);
-            progressBarController.ProgressBar.setProgress((double) percent /100);
-            progressBarController.InfoLabel.setText(message);
+            progressBarController.SetProgressBar(message, percent);
         });
     }
 
