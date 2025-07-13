@@ -3,12 +3,16 @@ package javaprojects.musictagger;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
@@ -19,6 +23,9 @@ public class MainController {
 
     @FXML
     public TextField artistNameTextField;
+
+    @FXML
+    public TextField apiKeyTextField;
 
     // Buttons
     @FXML
@@ -34,9 +41,19 @@ public class MainController {
     @FXML
     public Text artistRequiredText;
 
+    @FXML
+    public Text remainingDownloadApiRequestsText;
+
+    @FXML
+    public Text apiKeyRequiredText;
+
     public Stage mainStage;
 
-    ArrayList<MP3Data> list = new ArrayList<>();
+    int remainingDownloadRequests;
+
+    public void OnIntiate() throws IOException {
+        SetRemainingDownloadApiRequests(Application.GetSettings().getInt("remainingDownloadRequests"));
+    }
 
     public void OnClearButton() {
         // set requiredTexts to invisible
@@ -74,27 +91,31 @@ public class MainController {
         }
     }
 
-    public void AddToList(MP3Data data) {
-        if (!list.contains(data))
-            list.add(data);
-    }
-
-    public void RemoveFromList(MP3Data data) {
-        list.remove(data);
-    }
-
     public void OnViewList() throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("song_list.fxml"));
         Stage stage = fxmlLoader.load();
         SongListController songListController = fxmlLoader.getController();
-        songListController.list = list;
         songListController.mainController = this;
         songListController.stage = stage;
         songListController.OnInitialize();
         stage.show();
     }
 
-    public void ClearList() {
-        list.clear();
+    public void OnSettings() throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("settings.fxml"));
+        Stage stage = fxmlLoader.load();
+        SettingsController settingsController = fxmlLoader.getController();
+        settingsController.stage = stage;
+        settingsController.OnLoad();
+        stage.show();
+    }
+
+    public void SetRemainingDownloadApiRequests(int requests) {
+        remainingDownloadApiRequestsText.setText("Remaining Download API Requests: " + requests);
+        remainingDownloadRequests = requests;
+    }
+
+    public int GetRemainingDownloadApiRequests() {
+        return remainingDownloadRequests;
     }
 }

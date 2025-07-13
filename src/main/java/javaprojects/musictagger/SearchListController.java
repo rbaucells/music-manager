@@ -47,13 +47,13 @@ public class SearchListController {
 
         ArrayList<MP3Data> mp3Datas = GetAllSongData(songName.strip(), artistName.strip(), page);
 
-        for (int i = 0; i < mp3Datas.size(); i++) {
+        for (MP3Data mp3Data : mp3Datas) {
             FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("search_result.fxml"));
             AnchorPane anchorPane = fxmlLoader.load();
             ScrollingVBox.getChildren().add(anchorPane);
             SearchResultController searchResultController = fxmlLoader.getController();
 
-            searchResultController.SetMP3Data(mp3Datas.get(i));
+            searchResultController.Initialize(mp3Data);
             searchResultController.stage = stage;
             searchResultController.mainController = mainController;
         }
@@ -187,10 +187,10 @@ public class SearchListController {
     }
 
     public JSONObject SearchTracks(String accessToken, String searchTerm, int page) throws URISyntaxException, IOException, InterruptedException {
-        int offset = 10 * (page - 1);
-        int limit = 10;
+        int amountPerPage = Application.GetSettings().getInt("numberOfSearchResults");
+        int offset = amountPerPage * (page - 1);
 
-        URI uri = new URI("https", null, "api.spotify.com", 443, "/v1/search", "q=" + searchTerm + "&type=track&market=US&offset=" + offset + "&limit=" + limit, null);
+        URI uri = new URI("https", null, "api.spotify.com", 443, "/v1/search", "q=" + searchTerm + "&type=track&market=US&offset=" + offset + "&limit=" + amountPerPage, null);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .GET()
@@ -199,6 +199,11 @@ public class SearchListController {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 429) {
+            System.out.println("Quota for Spotify Web API Exceeded");
+            return null;
+        }
 
         JSONObject responseObject = new JSONObject(response.body());
 

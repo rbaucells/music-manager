@@ -1,5 +1,6 @@
 package javaprojects.musictagger;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -9,25 +10,17 @@ import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
-import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import org.jaudiotagger.tag.id3.ID3v1Tag;
-import org.jaudiotagger.tag.images.StandardArtwork;
-import org.json.JSONObject;
 
 import java.io.*;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class SearchResultController {
     // Texts
@@ -55,13 +48,19 @@ public class SearchResultController {
 
     public Stage stage;
 
-    public void SetMP3Data(MP3Data data) {
+    public void Initialize(MP3Data data) throws IOException {
         mp3Data = data;
 
         SongLabel.setText(data.trackName.strip());
         String artistAlbumYearString = data.artistName.strip() + " | " + data.albumName.strip() + " | " + data.recordingYear.strip();
         ArtistAlbumYearText.setText(artistAlbumYearString);
         AlbumCoverImageView.setImage(new Image(new ByteArrayInputStream(data.image)));
+
+        // if we are already in the list
+        if (Application.DoesListJSONContain(mp3Data)) {
+            AddToListButton.setVisible(false);
+            RemoveFromListButton.setVisible(true);
+        }
     }
 
     public void OnChoose() throws CannotWriteException, CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
@@ -84,8 +83,19 @@ public class SearchResultController {
     }
 
     public void OnDownload() throws URISyntaxException, IOException, InterruptedException, CannotWriteException, CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException {
-        DownloadThread downloadThread = new DownloadThread(stage, mp3Data, GetSelectedFile());
-        downloadThread.start();
+        FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("progress_bar.fxml"));
+        Stage progressStage = fxmlLoader.load();
+        final ProgressBarController progressBarController = fxmlLoader.getController();
+        progressBarController.stage = progressStage;
+
+        DownloadRunnable downloadRunnable = new DownloadRunnable(stage, mp3Data, GetSelectedFile(), (message, percent) -> Platform.runLater(() -> progressBarController.SetProgressBar(message, percent)));
+
+        var task = Application.threadPoolExecutor.submit((downloadRunnable));
+
+        progressBarController.onCancelInterface = () -> {
+            task.cancel(true);
+            progressBarController.close();
+        };
     }
 
     File GetSelectedFile() {
@@ -95,17 +105,17 @@ public class SearchResultController {
         return fileChooser.showSaveDialog(stage);
     }
 
-    public void OnAddToList() {
+    public void OnAddToList() throws IOException {
         AddToListButton.setVisible(false);
         RemoveFromListButton.setVisible(true);
 
-        mainController.AddToList(mp3Data);
+        Application.WriteMP3DataToListJSON(mp3Data);
     }
 
-    public void OnRemoveFromList() {
+    public void OnRemoveFromList() throws IOException {
         AddToListButton.setVisible(true);
         RemoveFromListButton.setVisible(false);
 
-        mainController.RemoveFromList(mp3Data);
+        Application.DeleteMP3DataFromListJSON(mp3Data);
     }
 }

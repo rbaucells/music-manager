@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Scene?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<?import javafx.stage.Stage?>
+
+<Stage xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SettingsController">
+    <scene>
+        <Scene>
+         <VBox alignment="CENTER" prefHeight="300.0" prefWidth="500.0">
+            <children>
+               <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Settings">
+                  <font>
+                     <Font size="51.0" />
+                  </font>
+               </Text>
+               <HBox alignment="CENTER" prefHeight="50.0" prefWidth="200.0">
+                  <children>
+                     <TextField fx:id="numberOfBatchDownloadThreadsTextField" prefHeight="26.0" prefWidth="214.0" promptText="Number Of Batch Download Threads" />
+                     <Pane prefHeight="100.0" prefWidth="13.0" />
+                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Number Of Batch Download Threads" />
+                  </children>
+               </HBox>
+               <HBox alignment="CENTER" prefHeight="50.0" prefWidth="200.0">
+                  <children>
+                     <TextField fx:id="numberOfSearchResultsTextField" prefHeight="26.0" prefWidth="214.0" promptText="Number Of Search Results Per Page" />
+                     <Pane prefHeight="100.0" prefWidth="13.0" />
+                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Number Of Search Results Per Page" />
+                  </children>
+               </HBox>
+               <HBox alignment="CENTER" prefHeight="50.0" prefWidth="200.0">
+                  <children>
+                     <TextField fx:id="apiKeyTextField" prefHeight="26.0" prefWidth="214.0" promptText="API KEY" />
+                     <Pane prefHeight="100.0" prefWidth="13.0" />
+                     <Text strokeType="OUTSIDE" strokeWidth="0.0" text="API KEY" />
+                     <Pane prefHeight="100.0" prefWidth="13.0" />
+                     <Hyperlink onAction="#OnApiLink" text="GET A KEY HERE" />
+                  </children>
+               </HBox>
+               <HBox alignment="CENTER" prefHeight="41.0" prefWidth="500.0">
+                  <children>
+                     <Button mnemonicParsing="false" onAction="#OnSave" text="Save" />
+                     <Pane prefHeight="41.0" prefWidth="10.0" />
+                     <Button cancelButton="true" mnemonicParsing="false" onAction="#OnCancel" text="Cancel" />
+                  </children>
+               </HBox>
+            </children>
+         </VBox>
+        </Scene>
+    </scene>
+</Stage>

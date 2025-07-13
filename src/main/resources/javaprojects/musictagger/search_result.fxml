@@ -10,7 +10,7 @@
 <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="70.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SearchResultController">
    <children>
       <Text fx:id="ArtistAlbumYearText" layoutX="70.0" layoutY="57.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Artist | Album | Year" wrappingWidth="436.0" AnchorPane.leftAnchor="70.0" />
-      <Label fx:id="SongLabel" ellipsisString=".." layoutX="70.0" layoutY="6.0" maxWidth="448.0" prefHeight="37.0" prefWidth="198.0" text="Song" AnchorPane.leftAnchor="70.0" AnchorPane.rightAnchor="332.0">
+      <Label fx:id="SongLabel" ellipsisString=".." layoutX="70.0" layoutY="6.0" maxWidth="448.0" prefHeight="37.0" prefWidth="166.0" text="Song" AnchorPane.leftAnchor="70.0" AnchorPane.rightAnchor="364.0">
          <font>
             <Font size="30.0" />
          </font>

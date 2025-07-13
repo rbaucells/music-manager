@@ -27,7 +27,7 @@ public class ListResultController {
     public Stage stage;
 
     public void OnRemoveFromList() throws IOException {
-        mainController.RemoveFromList(data);
+        Application.DeleteMP3DataFromListJSON(data);
         songListController.RefreshList();
     }
 

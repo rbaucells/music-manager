@@ -1,8 +1,8 @@
 package javaprojects.musictagger;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
@@ -12,10 +12,10 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.*;
 
 public class SongListController {
     public MainController mainController;
-    public ArrayList<MP3Data> list = new ArrayList<>();
     public Stage stage;
 
     @FXML
@@ -32,6 +32,8 @@ public class SongListController {
 
     void RefreshList() throws IOException {
         ScrollingVBox.getChildren().clear();
+        ArrayList<MP3Data> list = Application.ReadListJSON();
+
         for (MP3Data mp3Data : list) {
             FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("list_result.fxml"));
             AnchorPane anchorPane = fxmlLoader.load();
@@ -47,7 +49,9 @@ public class SongListController {
         InfoLabel.setText("Song List : " + list.size() + " Items");
     }
 
-    public void OnDownload() {
+    public void OnDownload() throws IOException, InterruptedException {
+        ArrayList<MP3Data> list = Application.ReadListJSON();
+
         if (list.isEmpty())
             return;
         DirectoryChooser directoryChooser = new DirectoryChooser();
@@ -57,10 +61,23 @@ public class SongListController {
             return;
 
         for (MP3Data mp3Data : list) {
-            File file = new File(folder.getPath() + File.separator + mp3Data.trackName +  ".mp3");
-            DownloadThread downloadThread = new DownloadThread(stage, mp3Data, file);
-            downloadThread.start();
+            FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("progress_bar.fxml"));
+            Stage progressStage = fxmlLoader.load();
+            final ProgressBarController progressBarController = fxmlLoader.getController();
+            progressBarController.stage = progressStage;
+            File file = new File(folder.getPath() + File.separator + mp3Data.trackName + ".mp3");
+
+            DownloadRunnable downloadRunnable = new DownloadRunnable(stage, mp3Data, file, (message, percent) -> Platform.runLater(() -> progressBarController.SetProgressBar(message, percent)));
+
+            var task = Application.threadPoolExecutor.submit((downloadRunnable));
+
+            progressBarController.onCancelInterface = () -> {
+                task.cancel(true);
+                progressBarController.close();
+            };
         }
+
+        System.out.println("Number of threads: " + Application.threadPoolExecutor.getPoolSize());
     }
 
     public void OnCancel() {
@@ -69,8 +86,8 @@ public class SongListController {
 
     public void OnClear() throws IOException {
         if (!downloading) {
-            list.clear();
-            mainController.ClearList();
+            Application.ClearListJSON();
+            Application.ClearListJSON();
             RefreshList();
         }
     }
