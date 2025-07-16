@@ -2,31 +2,25 @@ package javaprojects.musictagger;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 
 public class MainController {
+    private static final Logger logger = LoggerFactory.getLogger(MainController.class);
     // Text Fields
     @FXML
     public TextField songNameTextField;
 
     @FXML
     public TextField artistNameTextField;
-
-    @FXML
-    public TextField apiKeyTextField;
-
     // Buttons
     @FXML
     public Button searchButton;
@@ -44,18 +38,16 @@ public class MainController {
     @FXML
     public Text remainingDownloadApiRequestsText;
 
-    @FXML
-    public Text apiKeyRequiredText;
-
     public Stage mainStage;
 
     int remainingDownloadRequests;
 
-    public void OnIntiate() throws IOException {
-        SetRemainingDownloadApiRequests(Application.GetSettings().getInt("remainingDownloadRequests"));
+    public void onInitiate() {
+        SetRemainingDownloadApiRequests(Application.getSettings().getInt("remainingDownloadRequests"));
     }
 
     public void OnClearButton() {
+        logger.info("clear button pressed");
         // set requiredTexts to invisible
         songRequiredText.setVisible(false);
         artistRequiredText.setVisible(false);
@@ -65,52 +57,57 @@ public class MainController {
         artistNameTextField.clear();
     }
 
-    public void OnSearchButton() throws IOException, URISyntaxException, InterruptedException {
+    public void OnSearchButton() throws IOException {
         // show the requiredTexts and do nothing if the textFields are empty
         boolean songTextEmpty = songNameTextField.getText().isBlank();
         boolean artistTextEmpty = artistNameTextField.getText().isBlank();
 
         if (songTextEmpty && artistTextEmpty) {
+            logger.info("both song and artist are empty, showing the requiredTexts");
             songRequiredText.setVisible(true);
             artistRequiredText.setVisible(true);
             return;
         }
 
+        logger.debug("creating search_list");
+
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("search_list.fxml"));
         Stage stage = fxmlLoader.load();
         SearchListController controller = fxmlLoader.getController();
         stage.show();
-        controller.mainController = this;
         controller.stage = stage;
         controller.OnInitialize(songNameTextField.getText(), artistNameTextField.getText(), 1);
     }
 
-    public void OnEnterKeyPressedInTextField(KeyEvent event) throws IOException, URISyntaxException, InterruptedException {
+    public void OnEnterKeyPressedInTextField(KeyEvent event) throws IOException {
         if (event.getCode() == KeyCode.ENTER) {
+            logger.info("enter key pressed, starting search");
             OnSearchButton();
         }
     }
 
     public void OnViewList() throws IOException {
+        logger.info("view list button pressed, creating new song_list");
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("song_list.fxml"));
         Stage stage = fxmlLoader.load();
         SongListController songListController = fxmlLoader.getController();
-        songListController.mainController = this;
         songListController.stage = stage;
-        songListController.OnInitialize();
+        songListController.onInitialize();
         stage.show();
     }
 
     public void OnSettings() throws IOException {
+        logger.info("view settings button pressed, creating new settings");
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("settings.fxml"));
         Stage stage = fxmlLoader.load();
         SettingsController settingsController = fxmlLoader.getController();
         settingsController.stage = stage;
-        settingsController.OnLoad();
+        settingsController.onLoad();
         stage.show();
     }
 
     public void SetRemainingDownloadApiRequests(int requests) {
+        logger.info("setting remaining DownloadApiRequests to {}", requests);
         remainingDownloadApiRequestsText.setText("Remaining Download API Requests: " + requests);
         remainingDownloadRequests = requests;
     }

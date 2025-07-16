@@ -20,7 +20,7 @@
                   </font>
                </Text>
                <Pane prefHeight="42.0" prefWidth="300.0" />
-               <Label fx:id="InformationLabel" maxWidth="286.0" prefHeight="62.0" prefWidth="286.0" textAlignment="CENTER" wrapText="true" />
+               <Label fx:id="InformationLabel" alignment="CENTER" maxWidth="286.0" prefHeight="62.0" prefWidth="286.0" textAlignment="CENTER" wrapText="true" />
                <Pane prefHeight="42.0" prefWidth="300.0" />
                <Button mnemonicParsing="false" onAction="#OnRetry" text="Retry" />
                <Pane prefHeight="9.0" prefWidth="300.0" />

@@ -16,6 +16,6 @@
          </font>
       </Label>
       <ImageView fx:id="AlbumCoverImageView" fitHeight="60.0" fitWidth="60.0" layoutX="5.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="5.0" />
-      <Button layoutX="474.0" layoutY="22.0" mnemonicParsing="false" onAction="#OnRemoveFromList" text="Remove from List" AnchorPane.rightAnchor="14.0" />
+      <Button layoutX="474.0" layoutY="22.0" mnemonicParsing="false" onAction="#onRemoveFromList" text="Remove from List" AnchorPane.rightAnchor="14.0" />
    </children>
 </AnchorPane>

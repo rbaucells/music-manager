@@ -41,14 +41,14 @@
                      <Pane prefHeight="100.0" prefWidth="13.0" />
                      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="API KEY" />
                      <Pane prefHeight="100.0" prefWidth="13.0" />
-                     <Hyperlink onAction="#OnApiLink" text="GET A KEY HERE" />
+                     <Hyperlink onAction="#onApiLink" text="GET A KEY HERE" />
                   </children>
                </HBox>
                <HBox alignment="CENTER" prefHeight="41.0" prefWidth="500.0">
                   <children>
-                     <Button mnemonicParsing="false" onAction="#OnSave" text="Save" />
+                     <Button mnemonicParsing="false" onAction="#onSave" text="Save" />
                      <Pane prefHeight="41.0" prefWidth="10.0" />
-                     <Button cancelButton="true" mnemonicParsing="false" onAction="#OnCancel" text="Cancel" />
+                     <Button cancelButton="true" mnemonicParsing="false" onAction="#onCancel" text="Cancel" />
                   </children>
                </HBox>
             </children>

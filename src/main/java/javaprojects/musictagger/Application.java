@@ -4,18 +4,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.CannotWriteException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
-import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.id3.ID3v1Tag;
 import org.jaudiotagger.tag.images.StandardArtwork;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -29,6 +25,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Application extends javafx.application.Application {
+
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
     static Path configurationPath = Paths.get(System.getenv("HOME"), ".musictagger");
 
@@ -50,32 +48,53 @@ public class Application extends javafx.application.Application {
         Stage myStage = fxmlLoader.load();
         myStage.show();
         mainController = fxmlLoader.getController();
-        mainController.OnIntiate();
+        mainController.onInitiate();
         mainController.mainStage = myStage;
     }
 
     @Override
-    public void stop() throws IOException {
+    public void stop() {
         threadPoolExecutor.close();
-        JSONObject jsonObject = GetSettings();
-        SaveSettings(jsonObject.getInt("numberOfBatchDownloads"), jsonObject.getInt("numberOfSearchResults"), jsonObject.getString("apiKey"), mainController.GetRemainingDownloadApiRequests());
+        JSONObject jsonObject = getSettings();
+        saveSettings(jsonObject.getInt("numberOfBatchDownloads"), jsonObject.getInt("numberOfSearchResults"), jsonObject.getString("apiKey"), mainController.GetRemainingDownloadApiRequests());
     }
 
     public static void main(String[] args) throws IOException {
-        SetUpListJSON();
-        SetUpSettingsJSON();
+        // empty line to signify new startup
+        logger.info("App Started");
 
-        int numberOfBatchDownloads = GetSettings().getInt("numberOfBatchDownloads");
+        try (InputStream inputStream = new FileInputStream(settingsJSONFile)) {
+            logger.debug("settingsJSONFile located at {}", settingsJSONFile);
+            logger.debug("settingsJSONFile contents {}", new String(inputStream.readAllBytes()));
+        }
+
+        try (InputStream inputStream = new FileInputStream(listJSONFile)) {
+            JSONArray listArray = new JSONArray(new String(inputStream.readAllBytes()));
+            logger.debug("listJSONFile located at {}", listJSONFile);
+            logger.debug("listJSONFile contents {}", listJSONTostring(listArray));
+        }
+
+        logger.info("verifying listJSONFile and settingsJSONFile");
+
+        verifyListJSONFile();
+        verifySettingsJSONFile();
+
+        int numberOfBatchDownloads = getSettings().getInt("numberOfBatchDownloads");
+        logger.debug("numberOfConcurrentDownloads is {}, creating threadPoolExecutor now", numberOfBatchDownloads);
         threadPoolExecutor = new ThreadPoolExecutor(numberOfBatchDownloads, numberOfBatchDownloads, 5, TimeUnit.MINUTES, new ArrayBlockingQueue<>(numberOfBatchDownloads));
 
+        logger.info("the ui thread has begun");
         launch();
     }
 
-    public static void SetUpSettingsJSON() throws IOException {
+    public static void verifySettingsJSONFile() throws IOException {
+        logger.debug("SetUpSettingsJSON()");
         if (!settingsJSONFile.exists()) {
+            logger.info("settingsJSONFile doesnt exist, making it now");
             Files.createDirectories(configurationPath);
             Files.createFile(settingsJSONFilePath);
 
+            logger.debug("writing jsonObject with default parameters to settingsJSONFile");
             try (OutputStream outputStream = new FileOutputStream(settingsJSONFile)) {
                 JSONObject jsonObject = new JSONObject();
 
@@ -86,14 +105,15 @@ public class Application extends javafx.application.Application {
 
                 outputStream.write(jsonObject.toString().getBytes());
             } catch (Exception e) {
-                NewError("Error While Writting While Setting Up SettingsJSON", Application::SetUpSettingsJSON);
+                logger.error("Error writing jsonObject with default parameters to settingsJSONFile where it didnt exist", e);
+                newError("Error While Writing While Setting Up SettingsJSON", Application::verifySettingsJSONFile);
             }
-        }
-        else {
+        } else {
+            logger.info("settingsJSONFile does exist, verifying it now");
             try (InputStream inputStream = new FileInputStream(settingsJSONFile)) {
                 String string = new String(inputStream.readAllBytes());
-
                 if (!string.contains("{")) {
+                    logger.debug("settingsJSONFile doeesnt contain a \"{\" (jsonObject), writing a jsonObject with default parameters now");
                     try (OutputStream outputStream = new FileOutputStream(settingsJSONFile)) {
                         JSONObject jsonObject = new JSONObject();
 
@@ -104,121 +124,157 @@ public class Application extends javafx.application.Application {
 
                         outputStream.write(jsonObject.toString().getBytes());
                     } catch (Exception e) {
-                        NewError("Error While Writing To SettingsJSON", Application::SetUpSettingsJSON);
+                        logger.error("Error writing jsonObject with default parameters to settingsJSONFile where it did exist but was empty", e);
+                        newError("Error While Writing To SettingsJSON", Application::verifySettingsJSONFile);
+                    }
+                } else {
+                    JSONObject jsonObject = new JSONObject(string);
+
+                    logger.debug("settingsJSONFile does have a jsonObject, verifying it has all parameters now");
+                    if (!jsonObject.has("numberOfBatchDownloads")) {
+                        logger.debug("settingsJSONFile doesnt have \"numberOfBatchDownloads\", writing default parameter");
+                        jsonObject.put("numberOfBatchDownloads", 5);
+                    }
+                    if (!jsonObject.has("numberOfSearchResults")) {
+                        logger.debug("settingsJSONFile doesnt have \"numberOfSearchResults\", writing default parameter");
+                        jsonObject.put("numberOfSearchResults", 10);
+                    }
+                    if (!jsonObject.has("apiKey")) {
+                        logger.debug("settingsJSONFile doesnt have \"apiKey\", writing default parameter");
+                        jsonObject.put("apiKey", "");
+                    }
+                    if (!jsonObject.has("remainingDownloadRequests")) {
+                        logger.debug("settingsJSONFile doesnt have \"remainingDownloadRequests\", writing default parameter");
+                        jsonObject.put("remainingDownloadRequests", 300);
+                    }
+
+                    logger.debug("writing verified jsonObject to settingsJSONFile");
+                    try (OutputStream outputStream = new FileOutputStream(settingsJSONFile)) {
+                        outputStream.write(jsonObject.toString().getBytes());
+                    } catch (Exception e) {
+                        logger.error("Error writing verified jsonObject to settingsJSONFile", e);
+                        newError("Error While Writing To SettingsJSON", Application::verifySettingsJSONFile);
                     }
                 }
-
-                JSONObject jsonObject = new JSONObject(string);
-
-                if (!jsonObject.has("numberOfBatchDownloads")) {
-                    jsonObject.put("numberOfBatchDownloads", 5);
-                }
-                if (!jsonObject.has("numberOfSearchResults")) {
-                     jsonObject.put("numberOfSearchResults", 10);
-                }
-                if (!jsonObject.has("apiKey")) {
-                    jsonObject.put("apiKey", "");
-                }
-                if (!jsonObject.has("remainingDownloadRequests")) {
-                    jsonObject.put("remainingDownloadRequests", 300);
-                }
-
-                try (OutputStream outputStream = new FileOutputStream(settingsJSONFile)) {
-                    outputStream.write(jsonObject.toString().getBytes());
-                }
-                catch (Exception e) {
-                    NewError("Error While Writing To SettingsJSON", Application::SetUpSettingsJSON);
-                }
-            }
-            catch (Exception e) {
-                NewError("Error While Reading From SettingsJSON", Application::SetUpSettingsJSON);
+            } catch (Exception e) {
+                logger.error("Error reading settingsJSONFile", e);
+                newError("Error While Reading From SettingsJSON", Application::verifySettingsJSONFile);
             }
         }
     }
 
-    public static void SetUpListJSON() throws IOException {
+    public static void verifyListJSONFile() throws IOException {
+        logger.debug("SetUpListJSON()");
+
         if (!listJSONFile.exists()) {
+            logger.info("listJSONFile doesnt exist, making it now");
             Files.createDirectories(configurationPath);
             Files.createFile(listJSONFilePath);
 
+            logger.debug("writing empty array to listJSONFile");
             try (OutputStream outputStream = new FileOutputStream(listJSONFile)) {
                 outputStream.write("[ ]".getBytes());
+            } catch (Exception e) {
+                logger.error("Error writing empty array to listJSONFile where it didnt exist", e);
+                newError("Error Writing to ListJSON While SettingUpListJSON", Application::verifyListJSONFile);
             }
-            catch (Exception e) {
-                NewError("Error Writing to ListJSON While SettingUpListJSON", Application::SetUpListJSON);
-                e.printStackTrace();
-            }
-        }
-        else {
+        } else {
+            logger.info("listJSONFile does exist, reading from it now");
             try (InputStream inputStream = new FileInputStream(listJSONFile)) {
                 String jsonString = new String(inputStream.readAllBytes());
-
                 if (!jsonString.contains("[")) {
+                    logger.debug("listJSONFile doesnt contain a \"[\" (jsonArray), writing an empty JSON array now");
                     try (OutputStream outputStream = new FileOutputStream(listJSONFile)) {
                         outputStream.write("[ ]".getBytes());
-                    }
-                    catch (Exception e) {
-                        NewError("Error Writing to ListJSON While SettingUpListJSON", Application::SetUpListJSON);
-                        e.printStackTrace();
+                    } catch (Exception e) {
+                        logger.error("Error writing empty array to listJSONFile where it did exist", e);
+                        newError("Error Writing to ListJSON While SettingUpListJSON", Application::verifyListJSONFile);
                     }
                 }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-                NewError("Error Reading From ListJSON While SettingUpListJSON", Application::SetUpListJSON);
+            } catch (Exception e) {
+                logger.error("Error reading listJSONFile while it already existed", e);
+                newError("Error Reading From ListJSON While SettingUpListJSON", Application::verifyListJSONFile);
             }
         }
     }
 
-    public static void ApplyMP3Data(MP3Data data, File selectedFile) throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException, CannotWriteException {
-        AudioFile musicFile = AudioFileIO.read(selectedFile);
-        Tag fileTag = musicFile.getTagOrCreateDefault();
+    public static void applyMP3Data(MP3Data data, File selectedFile) {
+        logger.info("applying MP3Data {} to file {}", data, selectedFile);
+        try {
+            logger.debug("reading selectedFile and getting fileTag");
+            AudioFile musicFile = AudioFileIO.read(selectedFile);
+            Tag fileTag = musicFile.getTagOrCreateDefault();
 
-        fileTag.deleteArtworkField();
+            logger.debug("setting fields of fileTag");
+            fileTag.setField(FieldKey.TITLE, data.trackName);
+            fileTag.setField(FieldKey.ARTIST, data.artistName);
+            fileTag.setField(FieldKey.ALBUM, data.albumName);
 
-        fileTag.setField(FieldKey.TITLE, data.trackName);
-        fileTag.setField(FieldKey.ARTIST, data.artistName);
-        fileTag.setField(FieldKey.ALBUM, data.albumName);
-        if (!data.recordingYear.isBlank())
-            fileTag.setField(FieldKey.YEAR, data.recordingYear);
-        else
-            fileTag.deleteField(FieldKey.YEAR);
+            if (!data.recordingYear.isBlank()) {
+                logger.debug("recordingYear is not blank, setting field");
+                fileTag.setField(FieldKey.YEAR, data.recordingYear);
+            } else {
+                logger.debug("recordingYear is blank, deleting YEAR field");
+                fileTag.deleteField(FieldKey.YEAR);
+            }
 
-        StandardArtwork standardArtwork = new StandardArtwork();
-        standardArtwork.setBinaryData(data.image);
-        fileTag.setField(standardArtwork);
+            logger.debug("applying artwork");
+            fileTag.deleteArtworkField();
+            StandardArtwork standardArtwork = new StandardArtwork();
+            standardArtwork.setBinaryData(data.image);
+            fileTag.setField(standardArtwork);
 
-        musicFile.setTag(fileTag);
-        musicFile.commit();
+            logger.debug("setting musicFile tag to fileTag, and commiting changes");
+            musicFile.setTag(fileTag);
+            musicFile.commit();
 
-        File newMusicFilePath = new File(selectedFile.getParent(), data.trackName + ".mp3");
-
-        selectedFile.renameTo(newMusicFilePath);
+            File newMusicFile = new File(selectedFile.getParent(), data.trackName + ".mp3");
+            logger.debug("renaming {} to {}", selectedFile, newMusicFile);
+            selectedFile.renameTo(newMusicFile);
+            logger.info("MP3Data applied, and file renamed to {}", newMusicFile);
+        } catch (Exception e) {
+            logger.error("Error applying metadata to MP3 file", e);
+            newError("Error applying metadata to MP3 file", () -> Application.applyMP3Data(data, selectedFile));
+        }
     }
 
-    public static void WipeMP3(File selectedFile) throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException, CannotWriteException {
-        AudioFile musicFile = AudioFileIO.read(selectedFile);
-        Tag fileTag = musicFile.getTagOrCreateDefault();
-        fileTag = new ID3v1Tag();
-        musicFile.setTag(fileTag);
-        musicFile.commit();
+    public static void wipeMP3(File selectedFile) {
+        logger.info("wiping mp3 {}", selectedFile);
+        try {
+            logger.debug("reading selectedFile, and making a new empty ID3v1Tag");
+            AudioFile musicFile = AudioFileIO.read(selectedFile);
+            Tag fileTag = new ID3v1Tag();
+
+            logger.debug("setting musicFile tag and commiting changes");
+            musicFile.setTag(fileTag);
+            musicFile.commit();
+        } catch (Exception e) {
+            logger.error("Error wiping mp3 file", e);
+            newError("Error wiping mp3 file", () -> Application.wipeMP3(selectedFile));
+        }
     }
 
-    public static Boolean DoesListJSONContain(MP3Data data) throws IOException {
-        ArrayList<MP3Data> mp3DataArrayList = ReadListJSON();
-        for (MP3Data mp3Data : mp3DataArrayList) {
+    public static int doesListJSONContain(MP3Data data) {
+        logger.info("checking if listJSONFile contains MP3Data {}", data);
+        ArrayList<MP3Data> mp3DataArrayList = readListJSON();
+        for (int i = 0; i < mp3DataArrayList.size(); i++) {
+            MP3Data mp3Data = mp3DataArrayList.get(i);
             if (Objects.equals(mp3Data.trackName, data.trackName) && Objects.equals(mp3Data.artistName, data.artistName) && Objects.equals(mp3Data.albumName, data.albumName) && Objects.equals(mp3Data.recordingYear, data.recordingYear)) {
-                return true;
+                logger.info("MP3Data at index {} from listJSONFile {} and given MP3Data {} are the same", mp3Data, i, data);
+                return i;
             }
         }
-
-        return false;
+        logger.info("no corresponding MP3Data was found in listJSONFile");
+        return 0;
     }
 
-    public static void WriteMP3DataToListJSON(MP3Data data) throws IOException {
-        if (ReadListJSON().contains(data))
+    public static void writeMP3DataToListJSON(MP3Data data) {
+        logger.info("writing MP3Data {} into listJSONFile", data);
+        if (readListJSON().contains(data)) {
+            logger.info("listJSONFile already contains given MP3Data");
             return;
-
+        }
+        logger.debug("making a jsonObject from given MP3Data");
         JSONObject item = new JSONObject()
                 .put("trackName", data.trackName)
                 .put("artistName", data.artistName)
@@ -226,123 +282,168 @@ public class Application extends javafx.application.Application {
                 .put("recordingYear", data.recordingYear)
                 .put("image", Base64.getEncoder().encodeToString(data.image));
 
+        logger.debug("reading from listJSONFile");
         try (InputStream inputStream = new FileInputStream(listJSONFile)) {
             JSONArray jsonArray = new JSONArray(new String(inputStream.readAllBytes()));
+            logger.debug("putting jsonObject {} into jsonArray and writing to listJSONFile", listJSONToString(item));
             jsonArray.put(item);
-
             try (OutputStream outputStream = new FileOutputStream(listJSONFile)) {
                 outputStream.write(jsonArray.toString(4).getBytes());
+            } catch (Exception e) {
+                logger.error("Error writing jsonArray with MP3Data jsonObject in it", e);
+                newError("Error writing jsonArray with MP3Data jsonObject in it", () -> Application.writeMP3DataToListJSON(data));
             }
+        } catch (Exception e) {
+            logger.error("Error reading listJSONFile", e);
+            newError("Error reading listJSONFile", () -> Application.writeMP3DataToListJSON(data));
         }
     }
 
-    public static void DeleteMP3DataFromListJSON(MP3Data data) throws IOException {
+    public static void deleteMP3DataFromListJSON(MP3Data data) {
+        logger.info("deleting MP3Data {} from listJSONFile", data);
+
+        int indexOfMP3Data = doesListJSONContain(data);
+
+        if (indexOfMP3Data == 0) {
+            logger.info("listJSONFile doesnt contain given MP3Data");
+            return;
+        }
+        logger.debug("reading from listJSONFile");
         try (InputStream inputStream = new FileInputStream(listJSONFile)) {
+            logger.debug("creating jsonArray from listJSONFile and removing MP3Data");
             JSONArray jsonArray = new JSONArray(new String(inputStream.readAllBytes()));
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                // are the 2 the same
-                if (Objects.equals(jsonObject.getString("trackName"), data.trackName) && Objects.equals(jsonObject.getString("artistName"), data.artistName) && Objects.equals(jsonObject.getString("albumName"), data.albumName) && Objects.equals(jsonObject.getString("recordingYear"), data.recordingYear)) {
-                    jsonArray.remove(i);
-                }
-            }
-
+            jsonArray.remove(indexOfMP3Data);
+            logger.debug("writing jsonArray with MP3Data removed to listJSONFile");
             try (OutputStream outputStream = new FileOutputStream(listJSONFile)) {
                 outputStream.write(jsonArray.toString(4).getBytes());
+            } catch (Exception e) {
+                logger.error("Error while trying to write jsonArray with data removed from it", e);
+                newError("Error Writing to ListJSON While Deleting MP3Data", () -> Application.deleteMP3DataFromListJSON(data));
             }
-            catch (Exception e) {
-                e.printStackTrace();
-                NewError("Error Writing to ListJSON While Deleting MP3Data", () -> {
-                    Application.DeleteMP3DataFromListJSON(data);
-                });
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            NewError("Error Reading from ListJSON While Deleting MP3Data", () -> {
-                Application.DeleteMP3DataFromListJSON(data);
-            });
+        } catch (Exception e) {
+            logger.error("Error trying to read from listJSONFile", e);
+            newError("Error Reading from ListJSON While Deleting MP3Data", () -> Application.deleteMP3DataFromListJSON(data));
         }
     }
 
-    public static ArrayList<MP3Data> ReadListJSON() throws IOException {
+    public static ArrayList<MP3Data> readListJSON() {
+        logger.info("reading listJSONFile");
         ArrayList<MP3Data> datas = new ArrayList<>();
 
         try (InputStream inputStream = new FileInputStream(listJSONFile)) {
-            JSONArray jsonArray = new JSONArray(new String(inputStream.readAllBytes()));
+            logger.debug("creating jsonArray from listJSONFile");
+            String string = new String(inputStream.readAllBytes());
+            JSONArray jsonArray = new JSONArray(string);
+            logger.debug("looping through jsonObjects in jsonArray and turning them into MP3Data");
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
-
                 MP3Data data = new MP3Data(jsonObject.getString("trackName"), jsonObject.getString("artistName"), jsonObject.getString("albumName"), jsonObject.getString("recordingYear"), Base64.getDecoder().decode(jsonObject.getString("image")));
-
                 datas.add(data);
             }
-        }
-        catch (Exception e) {
-            NewError("Error Reading ListJSON", () -> {});
-            e.printStackTrace();
+        } catch (Exception e) {
+            newError("Error Reading ListJSONFile", () -> {
+            });
+            logger.error("Error opening inputStream to read listJSONFile", e);
         }
 
         return datas;
     }
 
-    public static void ClearListJSON() throws IOException {
+    public static void clearListJSON() {
+        logger.info("clearing listJSONFile, writing empty JSONArray to it now");
         try (OutputStream outputStream = new FileOutputStream(listJSONFile)) {
             outputStream.write(new JSONArray().toString(4).getBytes());
-        }
-        catch (Exception e) {
-            NewError("Error Writing While Clearing ListJSON", Application::ClearListJSON);
+        } catch (Exception e) {
+            logger.error("Error writing to ListJSONFile", e);
+            newError("Error Writing While Clearing ListJSON", Application::clearListJSON);
         }
     }
 
-    public static void SaveSettings(int numberOfBatchDownloads, int numberOfSearchResults, String apiKey, int remainingDownloadRequests) throws IOException {
+    public static void saveSettings(int numberOfBatchDownloads, int numberOfSearchResults, String apiKey, int remainingDownloadRequests) {
+        logger.info("saving settings to settingsJSONFile");
+        logger.debug("given perameters [numberOfBatchDownloads \"{}\", numberOfSearchResults \"{}\", apiKey \"{}\", remainingDownloadRequests \"{}\"]", numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests);
+        logger.debug("reading from settingsJSONFile");
         try (InputStream inputStream = new FileInputStream(settingsJSONFile)) {
-            byte[] bytes = inputStream.readAllBytes();
-            JSONObject jsonObject = new JSONObject(new String(bytes));
+            logger.debug("getting jsonObject from settingsJSONFile and putting parameters");
+            String string = new String(inputStream.readAllBytes());
+            JSONObject jsonObject = new JSONObject(string);
 
             jsonObject.put("numberOfBatchDownloads", numberOfBatchDownloads);
             jsonObject.put("numberOfSearchResults", numberOfSearchResults);
             jsonObject.put("apiKey", apiKey);
             jsonObject.put("remainingDownloadRequests", remainingDownloadRequests);
 
+            logger.debug("writing jsonObject to settingsJSONFile");
             try (OutputStream outputStream = new FileOutputStream(settingsJSONFile)) {
                 outputStream.write(jsonObject.toString().getBytes());
+            } catch (Exception e) {
+                logger.error("Error writing to settingsJSONFile", e);
+                newError("Error Writing While Saving Settings", () -> saveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests));
             }
-            catch (Exception e) {
-                e.printStackTrace();
-                NewError("Error Writing While Saving Settings", () -> {
-                    SaveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests);
-                });
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            NewError("Error Reading While Saving Settings", () -> {
-                SaveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests);
-            });
+        } catch (Exception e) {
+            logger.error("Error while reading form settingsJSONFile", e);
+            newError("Error Reading While Saving Settings", () -> saveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests));
         }
     }
 
-    public static JSONObject GetSettings() throws IOException {
+    public static JSONObject getSettings() {
+        logger.info("getting settings, reading settingsJSONFile now");
+        String string = "";
         try (InputStream inputStream = new FileInputStream(settingsJSONFile)) {
-            String string = new String(inputStream.readAllBytes());
-            return new JSONObject(string);
+            string = new String(inputStream.readAllBytes());
+        } catch (Exception e) {
+            newError("Error While Reading Settings File", () -> {
+            });
+            logger.error("Error while reading settingsJSONFile", e);
         }
-        catch (Exception e) {
-            NewError("Error While Reading Settings File", () -> {});
-            e.printStackTrace();
-            return null;
-        }
+        return new JSONObject(string);
     }
 
-    public static void NewError(String message, ErrorController.OnRetryInterface onRetry) throws IOException {
+    public static String listJSONToString(JSONObject listEntry) {
+        boolean hasImage = listEntry.getString("image").length() > 1;
+
+        return "{" +
+                "trackName='" + listEntry.getString("trackName") + "'" +
+                ", artistName='" + listEntry.getString("artistName") + "'" +
+                ", albumName='" + listEntry.getString("albumName") + "'" +
+                ", recordingYear='" + listEntry.getString("recordingYear") + "'" +
+                ", image='" + hasImage + "'" +
+                "}";
+    }
+
+    public static String listJSONTostring(JSONArray list) {
+        String string = "[";
+
+        for (int i = 0; i < list.length(); i++) {
+            JSONObject listEntry = list.getJSONObject(i);
+            boolean hasImage = listEntry.getString("image").length() > 1;
+
+            string += "{" +
+                    "trackName='" + listEntry.getString("trackName") + "'" +
+                    ", artistName='" + listEntry.getString("artistName") + "'" +
+                    ", albumName='" + listEntry.getString("albumName") + "'" +
+                    ", recordingYear='" + listEntry.getString("recordingYear") + "'" +
+                    ", image='" + hasImage + "'" +
+                    "}";
+        }
+
+        string += "]";
+        return string;
+    }
+
+    public static void newError(String message, ErrorController.OnRetryInterface onRetry) {
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("error.fxml"));
-        Stage stage = fxmlLoader.load();
+        Stage stage;
+        try {
+            stage = fxmlLoader.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         ErrorController errorController = fxmlLoader.getController();
         errorController.onRetryInterface = onRetry;
         errorController.InformationLabel.setText(message);
         errorController.stage = stage;
         stage.show();
+        logger.debug("created new Error with messege \"{}\" and retry \"{}\"", message, onRetry);
     }
 }

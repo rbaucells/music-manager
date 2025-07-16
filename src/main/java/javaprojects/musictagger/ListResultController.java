@@ -5,38 +5,37 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 public class ListResultController {
-    public MainController mainController;
-    public SongListController songListController;
-    public MP3Data data;
-
+    // text
     @FXML
     public Text ArtistAlbumYearText;
 
+    // label
     @FXML
     public Label SongLabel;
 
+    // imageView
     @FXML
     public ImageView AlbumCoverImageView;
 
-    public Stage stage;
+    public SongListController songListController;
+    public MP3Data data;
 
-    public void OnRemoveFromList() throws IOException {
-        Application.DeleteMP3DataFromListJSON(data);
-        songListController.RefreshList();
-    }
-
-    public void SetMP3Data(MP3Data data) {
+    public void setMP3Data(MP3Data data) {
         this.data = data;
 
         SongLabel.setText(data.trackName.strip());
         String artistAlbumYearString = data.artistName.strip() + " | " + data.albumName.strip() + " | " + data.recordingYear.strip();
         ArtistAlbumYearText.setText(artistAlbumYearString);
         AlbumCoverImageView.setImage(new Image(new ByteArrayInputStream(data.image)));
+    }
+
+    public void onRemoveFromList() throws IOException {
+        Application.deleteMP3DataFromListJSON(data);
+        songListController.refreshList();
     }
 }

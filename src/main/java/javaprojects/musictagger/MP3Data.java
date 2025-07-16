@@ -3,6 +3,7 @@ package javaprojects.musictagger;
 import org.jaudiotagger.tag.images.Artwork;
 
 import java.awt.*;
+import java.util.Arrays;
 
 public class MP3Data {
     public String trackName;
@@ -17,5 +18,16 @@ public class MP3Data {
         this.albumName = albumName;
         this.recordingYear = recordingYear;
         this.image = image;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "trackName='" + trackName + '\'' +
+                ", artistName='" + artistName + '\'' +
+                ", albumName='" + albumName + '\'' +
+                ", recordingYear='" + recordingYear + '\'' +
+                ", image=" + (image.length > 0) +
+                '}';
     }
 }

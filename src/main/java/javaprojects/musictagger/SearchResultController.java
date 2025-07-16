@@ -10,19 +10,13 @@ import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.CannotWriteException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
-import org.jaudiotagger.tag.TagException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class SearchResultController {
+    private static final Logger logger = LoggerFactory.getLogger(SearchResultController.class);
     // Texts
     @FXML
     public Text ArtistAlbumYearText;
@@ -38,17 +32,13 @@ public class SearchResultController {
     // Buttons
     @FXML
     public Button AddToListButton;
-
     @FXML
     public Button RemoveFromListButton;
 
-    public MainController mainController;
-
     MP3Data mp3Data;
-
     public Stage stage;
 
-    public void Initialize(MP3Data data) throws IOException {
+    public void initialize(MP3Data data) {
         mp3Data = data;
 
         SongLabel.setText(data.trackName.strip());
@@ -56,24 +46,32 @@ public class SearchResultController {
         ArtistAlbumYearText.setText(artistAlbumYearString);
         AlbumCoverImageView.setImage(new Image(new ByteArrayInputStream(data.image)));
 
+        logger.debug("checking if the assigned mp3Data is already in the listJSONFile");
         // if we are already in the list
-        if (Application.DoesListJSONContain(mp3Data)) {
+        if (Application.doesListJSONContain(mp3Data) != 0) {
+            logger.debug("MP3Data is already in the listJSONFile, setting button visibility");
             AddToListButton.setVisible(false);
             RemoveFromListButton.setVisible(true);
         }
     }
 
-    public void OnChoose() throws CannotWriteException, CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
+    public void onWriteToFile() throws IOException {
+        logger.info("search result chosen to write MP3Data to file. prompting user for destination file");
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("MP3 Files", "*.mp3"));
         File selectedFile = fileChooser.showOpenDialog(stage);
+
+        logger.debug("selected file is {}", selectedFile);
 
         if (selectedFile == null) {
             return;
         }
 
-        Application.ApplyMP3Data(mp3Data, selectedFile);
+        logger.debug("sending MP3Data to be applied");
 
+        Application.applyMP3Data(mp3Data, selectedFile);
+
+        logger.debug("loading up success");
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("success.fxml"));
         Stage successStage = fxmlLoader.load();
         SuccessController successController = fxmlLoader.getController();
@@ -82,40 +80,51 @@ public class SearchResultController {
         successStage.show();
     }
 
-    public void OnDownload() throws URISyntaxException, IOException, InterruptedException, CannotWriteException, CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException {
+    public void onDownload() throws IOException {
+        logger.info("search result chosen to download");
+        logger.debug("creating progressBar");
         FXMLLoader fxmlLoader = new FXMLLoader(Application.class.getResource("progress_bar.fxml"));
         Stage progressStage = fxmlLoader.load();
         final ProgressBarController progressBarController = fxmlLoader.getController();
         progressBarController.stage = progressStage;
 
-        DownloadRunnable downloadRunnable = new DownloadRunnable(stage, mp3Data, GetSelectedFile(), (message, percent) -> Platform.runLater(() -> progressBarController.SetProgressBar(message, percent)));
+        File selectedFile = getSelectedFile();
+        logger.debug("creating new DownloadRunnable with MP3Data {} and file {}", mp3Data, selectedFile);
+        DownloadRunnable downloadRunnable = new DownloadRunnable(mp3Data, selectedFile, (message, percent) -> Platform.runLater(() -> progressBarController.SetProgressBar(message, percent)));
 
+        logger.debug("assigning DownloadRunnable to threadPoolExecutor");
         var task = Application.threadPoolExecutor.submit((downloadRunnable));
 
+        logger.debug("defining cancelInterface for progressBarController");
         progressBarController.onCancelInterface = () -> {
             task.cancel(true);
             progressBarController.close();
         };
     }
 
-    File GetSelectedFile() {
+    File getSelectedFile() {
+        logger.info("prompting user for where to save downloadedFile");
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialFileName(mp3Data.trackName);
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("MP3 Files", "*.mp3"));
-        return fileChooser.showSaveDialog(stage);
+        File selectedFile = fileChooser.showSaveDialog(stage);
+        logger.debug("user chose file {}", selectedFile);
+        return selectedFile;
     }
 
-    public void OnAddToList() throws IOException {
+    public void onAddToList() {
+       logger.info("adding search result to list and setting button visibility");
         AddToListButton.setVisible(false);
         RemoveFromListButton.setVisible(true);
 
-        Application.WriteMP3DataToListJSON(mp3Data);
+        Application.writeMP3DataToListJSON(mp3Data);
     }
 
-    public void OnRemoveFromList() throws IOException {
+    public void onRemoveFromList() {
+        logger.info("removing search result to list and setting button visibility");
         AddToListButton.setVisible(true);
         RemoveFromListButton.setVisible(false);
 
-        Application.DeleteMP3DataFromListJSON(mp3Data);
+        Application.deleteMP3DataFromListJSON(mp3Data);
     }
 }

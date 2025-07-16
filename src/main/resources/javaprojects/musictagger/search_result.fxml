@@ -16,9 +16,9 @@
          </font>
       </Label>
       <ImageView fx:id="AlbumCoverImageView" fitHeight="60.0" fitWidth="60.0" layoutX="5.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="5.0" />
-      <Button layoutX="518.0" layoutY="22.0" mnemonicParsing="false" onAction="#OnChoose" text="Save Metadata To File" AnchorPane.rightAnchor="22.5" />
-      <Button layoutX="358.0" layoutY="22.0" mnemonicParsing="false" onAction="#OnDownload" text="Download" AnchorPane.rightAnchor="169.5" />
-      <Button fx:id="AddToListButton" layoutX="276.0" layoutY="22.0" mnemonicParsing="false" onAction="#OnAddToList" text="Add to List" AnchorPane.rightAnchor="248.5" />
-      <Button fx:id="RemoveFromListButton" layoutX="240.0" layoutY="22.0" mnemonicParsing="false" onAction="#OnRemoveFromList" text="Remove from List" visible="false" AnchorPane.rightAnchor="248.0" />
+      <Button layoutX="518.0" layoutY="22.0" mnemonicParsing="false" onAction="#onWriteToFile" text="Save Metadata To File" AnchorPane.rightAnchor="22.5" />
+      <Button layoutX="358.0" layoutY="22.0" mnemonicParsing="false" onAction="#onDownload" text="Download" AnchorPane.rightAnchor="169.5" />
+      <Button fx:id="AddToListButton" layoutX="276.0" layoutY="22.0" mnemonicParsing="false" onAction="#onAddToList" text="Add to List" AnchorPane.rightAnchor="248.5" />
+      <Button fx:id="RemoveFromListButton" layoutX="240.0" layoutY="22.0" mnemonicParsing="false" onAction="#onRemoveFromList" text="Remove from List" visible="false" AnchorPane.rightAnchor="248.0" />
    </children>
 </AnchorPane>
