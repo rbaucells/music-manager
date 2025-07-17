@@ -17,9 +17,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -445,5 +443,19 @@ public class Application extends javafx.application.Application {
         errorController.stage = stage;
         stage.show();
         logger.debug("created new Error with messege \"{}\" and retry \"{}\"", message, onRetry);
+    }
+
+    Dictionary<String, String> parseQueryString(String queryString) {
+        String[] seperatedQuery = queryString.split("&");
+
+        Dictionary<String, String> parameterValue = new Hashtable<>();
+
+        for (String string : seperatedQuery) {
+            String[] seperatedString = string.split("=");
+
+            parameterValue.put(seperatedString[0], seperatedString[1]);
+        }
+
+        return parameterValue;
     }
 }
