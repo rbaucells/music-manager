@@ -17,6 +17,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -33,6 +34,14 @@ public class Application extends javafx.application.Application {
 
     static Path settingsJSONFilePath = configurationPath.resolve("settings.json");
     static File settingsJSONFile = settingsJSONFilePath.toFile();
+
+    static Path refreshTokenJSONFilePath = configurationPath.resolve("refreshTokens.json");
+    static File refreshTokenJSONFile = refreshTokenJSONFilePath.toFile();
+
+    public static String SPOTIFY_CLIENT_ID = "d98205732f034eaeb1f56a0bd987eebe";
+
+    public static String accessToken;
+    public static Instant accessTokenExpiration;
 
     static ThreadPoolExecutor threadPoolExecutor;
 
@@ -76,6 +85,7 @@ public class Application extends javafx.application.Application {
 
         verifyListJSONFile();
         verifySettingsJSONFile();
+        verifyRefreshTokensFile();
 
         int numberOfBatchDownloads = getSettings().getInt("numberOfBatchDownloads");
         logger.debug("numberOfConcurrentDownloads is {}, creating threadPoolExecutor now", numberOfBatchDownloads);
@@ -196,6 +206,28 @@ public class Application extends javafx.application.Application {
         }
     }
 
+    public static void verifyRefreshTokensFile() throws IOException {
+        if (!refreshTokenJSONFile.exists()) {
+            Files.createDirectories(configurationPath);
+            Files.createFile(refreshTokenJSONFilePath);
+
+            JSONObject jsonObject = new JSONObject();
+
+            try (OutputStream outputStream = new FileOutputStream(refreshTokenJSONFile)) {
+                outputStream.write(jsonObject.toString().getBytes());
+            }
+        }
+        else {
+            try (InputStream inputStream = new FileInputStream(refreshTokenJSONFile)) {
+                String string = new String(inputStream.readAllBytes());
+                if (!string.contains("{")) {
+                    try (OutputStream outputStream = new FileOutputStream(refreshTokenJSONFile)) {
+                        outputStream.write(new JSONObject().toString().getBytes());
+                    }
+                }
+            }
+        }
+    }
     public static void applyMP3Data(MP3Data data, File selectedFile) {
         logger.info("applying MP3Data {} to file {}", data, selectedFile);
         try {
@@ -443,6 +475,27 @@ public class Application extends javafx.application.Application {
         errorController.stage = stage;
         stage.show();
         logger.debug("created new Error with messege \"{}\" and retry \"{}\"", message, onRetry);
+    }
+
+    public static JSONObject ReadRefreshTokenFromFile() throws IOException {
+        try (InputStream inputStream = new FileInputStream(refreshTokenJSONFile)) {
+            String fileString = new String(inputStream.readAllBytes());
+
+            return new JSONObject(fileString);
+        }
+    }
+
+    public static void WriteRefreshTokenToFile(String identifier, String value) throws IOException {
+        try (InputStream inputStream = new FileInputStream(refreshTokenJSONFile)) {
+            String fileString = new String(inputStream.readAllBytes());
+            JSONObject fileObject = new JSONObject(fileString);
+
+            fileObject.put(identifier, value);
+
+            try (OutputStream outputStream = new FileOutputStream(refreshTokenJSONFile)) {
+                outputStream.write(fileObject.toString().getBytes());
+            }
+        }
     }
 
     Dictionary<String, String> parseQueryString(String queryString) {

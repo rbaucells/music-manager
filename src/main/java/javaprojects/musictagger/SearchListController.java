@@ -20,11 +20,12 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SearchListController {
-    public final String SPOTIFY_CLIENT_ID = "d98205732f034eaeb1f56a0bd987eebe";
     public final String SPOTIFY_CLIENT_SECRET = "d8e239b7a26f46eb9d6806e1fb919f39";
 
     private static final Logger logger = LoggerFactory.getLogger(SearchListController.class);
@@ -43,7 +44,7 @@ public class SearchListController {
     String artistName;
     int page;
 
-    public void OnInitialize(String songName, String artistName, int page) throws IOException {
+    public void OnInitialize(String songName, String artistName, int page) throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
         this.songName = songName;
         this.artistName = artistName;
         this.page = page;
@@ -55,7 +56,10 @@ public class SearchListController {
         stage.setMinWidth(SongArtistLabel.getWidth());
 
         ArrayList<MP3Data> mp3Datas = GetAllSongData(songName.strip(), artistName.strip(), page);
+        populateSearchResults(mp3Datas);
+    }
 
+    public void populateSearchResults(List<MP3Data> mp3Datas) throws IOException {
         logger.info("Got search data, iterating through it now to add searchResults");
 
         for (MP3Data mp3Data : mp3Datas) {
@@ -101,8 +105,8 @@ public class SearchListController {
         ScrollingVBox.getChildren().add(button);
     }
 
-    public ArrayList<MP3Data> GetAllSongData(String trackName, String artistName, int page) throws IOException {
-        String accessToken = getAccessToken();
+    public ArrayList<MP3Data> GetAllSongData(String trackName, String artistName, int page) throws IOException, URISyntaxException, InterruptedException {
+        String accessToken = GetAccessToken();
         JSONObject trackSearchObject = SearchTracks(accessToken, (trackName + " by " + artistName).strip(), page);
 
         logger.info("processing search results");
@@ -198,6 +202,47 @@ public class SearchListController {
         return null;
     }
 
+    public String GetAccessToken() throws IOException, URISyntaxException, InterruptedException {
+        if (Application.accessTokenExpiration != null) {
+            if (Instant.now().isBefore(Application.accessTokenExpiration)) {
+                return Application.accessToken;
+            }
+        }
+
+        String refreshToken = Application.ReadRefreshTokenFromFile().getString("spotify");
+
+        try (HttpClient httpClient = HttpClient.newHttpClient()) {
+            String query = "";
+
+            query += "grant_type=refresh_token";
+            query += "&refresh_token=" + refreshToken;
+            query += "&client_id=" + Application.SPOTIFY_CLIENT_ID;
+
+            URI uri = new URI("https", null, "accounts.spotify.com", 443, "/api/token", query, null);
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (httpResponse.statusCode() != 200) {
+                Application.newError(new JSONObject(httpResponse.body()).getString("error_description"), () -> {});
+            }
+
+            JSONObject jsonObject = new JSONObject(httpResponse.body());
+            String accessToken = jsonObject.getString("access_token");
+            Instant expiration = Instant.now().plusSeconds(jsonObject.getInt("expires_in"));
+
+            Application.accessToken = accessToken;
+            Application.accessTokenExpiration = expiration;
+
+            return accessToken;
+        }
+    }
+
     public JSONObject SearchTracks(String accessToken, String searchTerm, int page) {
         int amountPerPage = Application.getSettings().getInt("numberOfSearchResults");
         int offset = amountPerPage * (page - 1);
@@ -216,9 +261,8 @@ public class SearchListController {
 
             int statusCode = response.statusCode();
             logger.info("response received with statusCode {}", response.statusCode());
-            if (statusCode == 429) {
-                logger.error("status code was 429, quota reached for spotify web api");
-                throw (new ExitException("Quota for spotify web api reached"));
+            if (response.statusCode() != 200) {
+                Application.newError(new JSONObject(response.body()).getString("error_description"), () -> {});
             }
             logger.debug("turning response into jsonObject");
             JSONObject responseObject = new JSONObject(response.body());
@@ -231,30 +275,6 @@ public class SearchListController {
         catch (Exception e) {
             logger.error("Error sending search request", e);
             throw (new ExitException("Error sending search request"));
-        }
-    }
-
-    public String getAccessToken() {
-        try (HttpClient httpClient = HttpClient.newHttpClient()) {
-            logger.info("getting access token from spotify web api");
-            URI uri = new URI("https", null, "accounts.spotify.com", 443, "/api/token", "grant_type=client_credentials&client_id=" + SPOTIFY_CLIENT_ID.strip() + "&client_secret=" + SPOTIFY_CLIENT_SECRET.strip(), null);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .POST(HttpRequest.BodyPublishers.noBody())
-                    .uri(uri)
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .build();
-            logger.debug("sending request to spotify web api");
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.debug("response received with statusCode {}", response.statusCode());
-            logger.debug("making jsonObject from response and getting access_token");
-            JSONObject object = new JSONObject(response.body());
-            String accessToken = object.getString("access_token");
-            logger.debug("returning access_token {}", accessToken);
-            return accessToken;
-        }
-        catch (Exception e) {
-            logger.error("Error getting access token", e);
-            throw (new ExitException("Error getting access token from spotify"));
         }
     }
 

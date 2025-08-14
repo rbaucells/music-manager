@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 
 public class MainController {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
@@ -57,7 +59,7 @@ public class MainController {
         artistNameTextField.clear();
     }
 
-    public void OnSearchButton() throws IOException {
+    public void OnSearchButton() throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
         // show the requiredTexts and do nothing if the textFields are empty
         boolean songTextEmpty = songNameTextField.getText().isBlank();
         boolean artistTextEmpty = artistNameTextField.getText().isBlank();
@@ -66,6 +68,12 @@ public class MainController {
             logger.info("both song and artist are empty, showing the requiredTexts");
             songRequiredText.setVisible(true);
             artistRequiredText.setVisible(true);
+            return;
+        }
+
+        if (!Application.ReadRefreshTokenFromFile().has("spotify")) {
+            logger.info("spotify not authenticated");
+            Application.newError("Spotify not authenticated, go to settings and authenticate", () -> {});
             return;
         }
 
@@ -79,7 +87,7 @@ public class MainController {
         controller.OnInitialize(songNameTextField.getText(), artistNameTextField.getText(), 1);
     }
 
-    public void OnEnterKeyPressedInTextField(KeyEvent event) throws IOException {
+    public void OnEnterKeyPressedInTextField(KeyEvent event) throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
         if (event.getCode() == KeyCode.ENTER) {
             logger.info("enter key pressed, starting search");
             OnSearchButton();

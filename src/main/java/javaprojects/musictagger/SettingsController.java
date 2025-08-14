@@ -11,6 +11,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 
 public class SettingsController {
     private static final Logger logger = LoggerFactory.getLogger(SettingsController.class);
@@ -54,5 +55,17 @@ public class SettingsController {
                 desktop.browse(uri);
             }
         }
+    }
+
+    public void onAuthenticateSpotify() throws NoSuchAlgorithmException, URISyntaxException, IOException {
+        AuthClient authClient = new AuthClient();
+        authClient.setClientId(Application.SPOTIFY_CLIENT_ID);
+        authClient.setAuthorizationURI(new URI("https://accounts.spotify.com/authorize"));
+        authClient.setRedirectPort(2000);
+        authClient.setRedirectPath("/callback");
+        authClient.setCodeChallengeType(AuthClient.CodeChallengeType.S256);
+        authClient.setHttpHandler(new SpotifyAuthHandler(authClient));
+        authClient.generateCodeChallenge();
+        authClient.RequestUserAuthorization();
     }
 }

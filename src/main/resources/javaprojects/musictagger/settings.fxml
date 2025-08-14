@@ -46,6 +46,12 @@
                </HBox>
                <HBox alignment="CENTER" prefHeight="41.0" prefWidth="500.0">
                   <children>
+                     <Button mnemonicParsing="false" onAction="#onAuthenticateSpotify" text="Authenticate Spotify">
+                        <font>
+                           <Font size="18.0" />
+                        </font>
+                     </Button>
+                     <Pane prefHeight="41.0" prefWidth="10.0" />
                      <Button mnemonicParsing="false" onAction="#onSave" text="Save" />
                      <Pane prefHeight="41.0" prefWidth="10.0" />
                      <Button cancelButton="true" mnemonicParsing="false" onAction="#onCancel" text="Cancel" />

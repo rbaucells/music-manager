@@ -13,12 +13,13 @@ import java.util.Hashtable;
 import java.util.function.Consumer;
 
 public class AuthHandler implements HttpHandler {
-    Consumer<HttpExchange> handleConsumer;
+    private final Consumer<HttpExchange> handleConsumer;
+
     public AuthHandler(Consumer<HttpExchange> handleConsumer) {
         this.handleConsumer = handleConsumer;
     }
 
-    public void handle(HttpExchange exchange) throws IOException {
+    public void handle(HttpExchange exchange) {
         handleConsumer.accept(exchange);
     }
 }
