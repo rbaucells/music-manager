@@ -46,17 +46,17 @@
 <Stage minHeight="320.0" minWidth="530.0" title="Auto Music Tagger" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="rbaucells.MusicManager.MainController">
     <scene>
         <Scene fill="RED">
-         <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="240.0" minWidth="530.0" prefHeight="360.0" prefWidth="640.0">
+         <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="240.0" minWidth="530.0" prefWidth="640.0">
             <children>
                <Pane minHeight="0.0" prefHeight="13.0" prefWidth="640.0" />
-               <HBox alignment="TOP_CENTER" prefHeight="30.0" prefWidth="640.0">
+               <HBox alignment="TOP_CENTER" prefWidth="640.0">
                   <children>
                      <Text fx:id="remainingDownloadApiRequestsText" strokeType="OUTSIDE" strokeWidth="0.0" text="Remaining Download API Requests: 300" />
                   </children>
                </HBox>
-               <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="60.0">
+               <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity">
                   <children>
-                     <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                     <HBox alignment="CENTER" prefWidth="200.0">
                         <children>
                            <Pane maxHeight="60.0" maxWidth="74.0" minHeight="0.0" prefHeight="60.0" prefWidth="74.0" />
                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Music-Manager">
@@ -74,8 +74,8 @@
                      </HBox>
                   </children>
                </VBox>
-               <Pane minHeight="0.0" prefHeight="13.0" prefWidth="640.0" />
-               <VBox alignment="CENTER" minHeight="130.0" prefHeight="130.0" prefWidth="640.0">
+               <Pane minHeight="0.0" prefHeight="49.0" prefWidth="640.0" />
+               <VBox alignment="CENTER" prefWidth="640.0">
                   <children>
                      <TextField fx:id="songNameTextField" alignment="CENTER" maxWidth="500.0" onKeyPressed="#OnEnterKeyPressedInTextField" prefHeight="26.0" prefWidth="200.0" promptText="Song Name" />
                      <Text fx:id="songRequiredText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="↑ REQUIRED ↑" visible="false">
@@ -89,22 +89,29 @@
                            <Font size="17.0" />
                         </font>
                      </Text>
+                     <TextField fx:id="albumNameTextField" alignment="CENTER" maxWidth="500.0" onKeyPressed="#OnEnterKeyPressedInTextField" prefHeight="26.0" prefWidth="200.0" promptText="Album Name" />
+                     <Text fx:id="albumRequiredText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="↑ REQUIRED ↑" visible="false">
+                        <font>
+                           <Font size="17.0" />
+                        </font>
+                     </Text>
+                     <TextField fx:id="yearTextField" alignment="CENTER" maxWidth="500.0" onKeyPressed="#OnEnterKeyPressedInTextField" prefWidth="200.0" promptText="Year" />
+                     <Text fx:id="yearRequiredText" fill="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="↑ REQUIRED ↑" visible="false">
+                        <font>
+                           <Font size="17.0" />
+                        </font>
+                     </Text>
                   </children>
                </VBox>
-               <VBox alignment="CENTER" minHeight="-Infinity" prefHeight="65.0">
+               <VBox alignment="CENTER" minHeight="-Infinity">
                   <children>
-                     <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                        <children>
-                           <Pane maxHeight="23.0" maxWidth="110.0" prefHeight="23.0" prefWidth="110.0" />
-                           <Pane maxHeight="24.0" maxWidth="20.0" prefHeight="24.0" prefWidth="20.0" />
-                        </children>
-                     </HBox>
-                     <Pane minHeight="-Infinity" prefHeight="12.0" prefWidth="100.0" />
+                     <Pane minHeight="-Infinity" prefHeight="20.0" prefWidth="640.0" />
                      <Button fx:id="searchButton" mnemonicParsing="false" onAction="#OnSearchButton" text="Search" />
                      <Pane minHeight="-Infinity" prefHeight="12.0" prefWidth="100.0" />
                      <Button fx:id="clearButton" mnemonicParsing="false" onAction="#OnClearButton" text="Clear" />
                      <Pane minHeight="10.0" prefHeight="10.0" prefWidth="600.0" />
                      <Button mnemonicParsing="false" onAction="#OnViewList" text="View List" />
+                     <Pane minHeight="10.0" prefHeight="10.0" prefWidth="600.0" />
                   </children>
                   <opaqueInsets>
                      <Insets />

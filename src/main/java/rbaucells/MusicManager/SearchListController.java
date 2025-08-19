@@ -42,20 +42,51 @@ public class SearchListController {
 
     String songName;
     String artistName;
+    String albumName;
+    String yearString;
     int page;
 
-    public void OnInitialize(String songName, String artistName, int page) throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
-        this.songName = songName;
+    public void OnInitialize(String trackName, String artistName, String albumName, String year, int page) throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
+        this.songName = trackName;
         this.artistName = artistName;
+        this.albumName = albumName;
+        this.yearString = year;
         this.page = page;
 
         logger.info("Initializing SearchList with parameters [songName {}, artistName {}, page {}]", songName, artistName, page);
-        String string = songName.strip() + " | " + artistName.strip();
+
+        String string = "";
+
+        if (!trackName.isBlank()) {
+            string += trackName;
+        }
+
+        if (!artistName.isBlank()) {
+            if (!string.isBlank())
+                string += " | " + artistName;
+            else
+                string += artistName;
+        }
+
+        if (!albumName.isBlank()) {
+            if (!string.isBlank())
+                string += " | " + albumName;
+            else
+                string += albumName;
+        }
+
+        if (!year.isBlank()) {
+            if (!string.isBlank())
+                string += " | " + year;
+            else
+                string+= year;
+        }
+
         SongArtistLabel.setText(string);
 
         stage.setMinWidth(SongArtistLabel.getWidth());
 
-        ArrayList<MP3Data> mp3Datas = GetAllSongData(songName.strip(), artistName.strip(), page);
+        ArrayList<MP3Data> mp3Datas = GetAllSongData(page);
         populateSearchResults(mp3Datas);
     }
 
@@ -78,8 +109,9 @@ public class SearchListController {
         button.setText("See More");
         button.setOnAction(event -> {
             try {
-                this.OnInitialize(songName, artistName, page + 1);
-            } catch (Exception e) {
+                this.OnInitialize(songName, artistName, albumName, yearString, page + 1);
+            }
+            catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
@@ -105,9 +137,24 @@ public class SearchListController {
         ScrollingVBox.getChildren().add(button);
     }
 
-    public ArrayList<MP3Data> GetAllSongData(String trackName, String artistName, int page) throws IOException, URISyntaxException, InterruptedException {
+    public ArrayList<MP3Data> GetAllSongData(int page) throws IOException, URISyntaxException, InterruptedException {
         String accessToken = GetAccessToken();
-        JSONObject trackSearchObject = SearchTracks(accessToken, (trackName + " by " + artistName).strip(), page);
+        String searchTerm = "";
+
+        if (!songName.isBlank()) {
+            searchTerm += "track:" + songName;
+        }
+        if (!artistName.isBlank()) {
+            searchTerm += " artist:" + artistName;
+        }
+        if (!albumName.isBlank()) {
+            searchTerm += " album:" + albumName;
+        }
+        if (!yearString.isBlank()) {
+            searchTerm += " year:" + yearString;
+        }
+
+        JSONObject trackSearchObject = SearchTracks(accessToken, searchTerm, page);
 
         logger.info("processing search results");
 
@@ -180,7 +227,7 @@ public class SearchListController {
                     }
 
                     if (name.isBlank()) {
-                        name = trackName.strip();
+                        name = songName.strip();
                     }
 
                     if (artist.isBlank()) {

@@ -23,6 +23,12 @@ public class MainController {
 
     @FXML
     public TextField artistNameTextField;
+
+    @FXML
+    public TextField albumNameTextField;
+
+    @FXML
+    public TextField yearTextField;
     // Buttons
     @FXML
     public Button searchButton;
@@ -36,6 +42,12 @@ public class MainController {
 
     @FXML
     public Text artistRequiredText;
+
+    @FXML
+    public Text albumRequiredText;
+
+    @FXML
+    public Text yearRequiredText;
 
     @FXML
     public Text remainingDownloadApiRequestsText;
@@ -63,11 +75,15 @@ public class MainController {
         // show the requiredTexts and do nothing if the textFields are empty
         boolean songTextEmpty = songNameTextField.getText().isBlank();
         boolean artistTextEmpty = artistNameTextField.getText().isBlank();
+        boolean albumTextEmpty = albumNameTextField.getText().isBlank();
+        boolean yearTextEmpty = yearTextField.getText().isBlank();
 
-        if (songTextEmpty && artistTextEmpty) {
-            logger.info("both song and artist are empty, showing the requiredTexts");
+        if (songTextEmpty && artistTextEmpty && albumTextEmpty && yearTextEmpty) {
+            logger.info("both song and artist and album and year are empty, showing the requiredTexts");
             songRequiredText.setVisible(true);
             artistRequiredText.setVisible(true);
+            albumRequiredText.setVisible(true);
+            yearRequiredText.setVisible(true);
             return;
         }
 
@@ -84,7 +100,7 @@ public class MainController {
         SearchListController controller = fxmlLoader.getController();
         stage.show();
         controller.stage = stage;
-        controller.OnInitialize(songNameTextField.getText(), artistNameTextField.getText(), 1);
+        controller.OnInitialize(songNameTextField.getText(), artistNameTextField.getText(), albumNameTextField.getText(), yearTextField.getText(), 1);
     }
 
     public void OnEnterKeyPressedInTextField(KeyEvent event) throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
