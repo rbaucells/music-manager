@@ -43,7 +43,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.stage.Stage?>
 
-<Stage minHeight="320.0" minWidth="530.0" title="Auto Music Tagger" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.MainController">
+<Stage minHeight="320.0" minWidth="530.0" title="Auto Music Tagger" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="rbaucells.MusicManager.MainController">
     <scene>
         <Scene fill="RED">
          <VBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="240.0" minWidth="530.0" prefHeight="360.0" prefWidth="640.0">

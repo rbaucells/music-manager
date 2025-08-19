@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>JavaProjects</groupId>
-    <artifactId>MusicTagger</artifactId>
+    <artifactId>MusicManager</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>MusicTagger</name>
 
@@ -79,7 +79,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>javaprojects.musictagger/javaprojects.musictagger.Application</mainClass>
+                            <mainClass>javaprojects.musictagger/rbaucells.MusicManager.Application</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>

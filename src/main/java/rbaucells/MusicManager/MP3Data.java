@@ -1,9 +1,4 @@
-package javaprojects.musictagger;
-
-import org.jaudiotagger.tag.images.Artwork;
-
-import java.awt.*;
-import java.util.Arrays;
+package rbaucells.MusicManager;
 
 public class MP3Data {
     public String trackName;

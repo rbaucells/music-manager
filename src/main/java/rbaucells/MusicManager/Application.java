@@ -1,4 +1,4 @@
-package javaprojects.musictagger;
+package rbaucells.MusicManager;
 
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;

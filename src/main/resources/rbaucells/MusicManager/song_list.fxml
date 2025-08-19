@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.stage.Stage?>
 
-<Stage minHeight="55.0" minWidth="250.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javaprojects.musictagger.SongListController">
+<Stage minHeight="55.0" minWidth="250.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="rbaucells.MusicManager.SongListController">
     <scene>
         <Scene>
          <VBox alignment="TOP_CENTER" prefHeight="400.0" prefWidth="600.0">

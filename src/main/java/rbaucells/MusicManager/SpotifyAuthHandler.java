@@ -1,4 +1,4 @@
-package javaprojects.musictagger;
+package rbaucells.MusicManager;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
