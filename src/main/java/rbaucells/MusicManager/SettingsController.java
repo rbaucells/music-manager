@@ -1,6 +1,8 @@
 package rbaucells.MusicManager;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.json.JSONObject;
@@ -23,6 +25,9 @@ public class SettingsController {
     @FXML
     public TextField numberOfSearchResultsTextField;
 
+    @FXML
+    public CheckBox UseSpecialSearchFiltersCheckBox;
+
     public Stage stage;
 
     public void onLoad() {
@@ -33,11 +38,12 @@ public class SettingsController {
         numberOfBatchDownloadThreadsTextField.setText(String.valueOf(jsonObject.getInt("numberOfBatchDownloads")));
         numberOfSearchResultsTextField.setText(String.valueOf(jsonObject.getInt("numberOfSearchResults")));
         apiKeyTextField.setText(String.valueOf(jsonObject.getString("apiKey")));
+        UseSpecialSearchFiltersCheckBox.setSelected(jsonObject.getBoolean("useSpecialSearchFilters"));
     }
 
     public void onSave() {
         logger.info("Saving information from textFields into settingsJSONFile");
-        Application.saveSettings(Integer.parseInt(numberOfBatchDownloadThreadsTextField.getText().strip()), Integer.parseInt(numberOfSearchResultsTextField.getText().strip()), apiKeyTextField.getText().strip(), Application.mainController.remainingDownloadRequests);
+        Application.saveSettings(Integer.parseInt(numberOfBatchDownloadThreadsTextField.getText().strip()), Integer.parseInt(numberOfSearchResultsTextField.getText().strip()), apiKeyTextField.getText().strip(), Application.mainController.remainingDownloadRequests, UseSpecialSearchFiltersCheckBox.isSelected());
         logger.debug("closing stage");
         stage.close();
     }

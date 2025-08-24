@@ -84,11 +84,58 @@ public class SearchListController {
 
         SongArtistLabel.setText(string);
 
-        stage.setMinWidth(SongArtistLabel.getWidth());
+        StartSearch(Application.getSettings().getBoolean("useSpecialSearchFilters"));
 
-        ArrayList<MP3Data> mp3Datas = GetAllSongData(page);
+        stage.setMinWidth(SongArtistLabel.getWidth());
+    }
+
+    void StartSearch(boolean useSpecialSearchFilters) throws IOException, URISyntaxException, InterruptedException {
+        String searchTerm = "";
+
+        if (useSpecialSearchFilters) {
+            if (!songName.isBlank()) {
+                searchTerm += "track:" + songName;
+            }
+            if (!artistName.isBlank()) {
+                searchTerm += " artist:" + artistName;
+            }
+            if (!albumName.isBlank()) {
+                searchTerm += " album:" + albumName;
+            }
+            if (!yearString.isBlank()) {
+                searchTerm += " year:" + yearString;
+            }
+        }
+        else {
+            if (!songName.isBlank()) {
+                searchTerm += songName;
+            }
+            if (!artistName.isBlank()) {
+                searchTerm += "by " + artistName;
+            }
+            if (!albumName.isBlank()) {
+                searchTerm += "in " + albumName;
+            }
+            if (!yearString.isBlank()) {
+                searchTerm += "in " + yearString;
+            }
+        }
+
+
+        ArrayList<MP3Data> mp3Datas = GetAllSongData(page, searchTerm);
+
+        if (mp3Datas.isEmpty()) {
+            logger.warn("GetAllSongData returned no results");
+
+            if (useSpecialSearchFilters) {
+                logger.warn("Going to try again without useSpecialSearchFilters");
+
+                StartSearch(false);
+            }
+        }
         populateSearchResults(mp3Datas);
     }
+
 
     public void populateSearchResults(List<MP3Data> mp3Datas) throws IOException {
         logger.info("Got search data, iterating through it now to add searchResults");
@@ -137,22 +184,8 @@ public class SearchListController {
         ScrollingVBox.getChildren().add(button);
     }
 
-    public ArrayList<MP3Data> GetAllSongData(int page) throws IOException, URISyntaxException, InterruptedException {
+    public ArrayList<MP3Data> GetAllSongData(int page, String searchTerm) throws IOException, URISyntaxException, InterruptedException {
         String accessToken = GetAccessToken();
-        String searchTerm = "";
-
-        if (!songName.isBlank()) {
-            searchTerm += "track:" + songName;
-        }
-        if (!artistName.isBlank()) {
-            searchTerm += " artist:" + artistName;
-        }
-        if (!albumName.isBlank()) {
-            searchTerm += " album:" + albumName;
-        }
-        if (!yearString.isBlank()) {
-            searchTerm += " year:" + yearString;
-        }
 
         JSONObject trackSearchObject = SearchTracks(accessToken, searchTerm, page);
 

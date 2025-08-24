@@ -142,7 +142,7 @@ public class DownloadRunnable implements Runnable {
         logger.info("starting download on id {}", id);
 
         progressBarConsumer.accept("Starting Conversion of Audio", 10);
-        URI uri = new URI("https", null, "youtube-mp3-2025.p.rapidapi.com", 443, "/v1/social/youtube/audio", "id=" + id + "&quality=128kbps", null);
+        URI uri = new URI("https", null, "youtube-mp3-2025.p.rapidapi.com", 443, "/v1/social/youtube/audio", "id=" + id + "&quality=128kbps&ext=mp3", null);
         logger.debug("uri for starting audio conversion {}", uri);
 
         try (HttpClient httpClient = HttpClient.newHttpClient()) {

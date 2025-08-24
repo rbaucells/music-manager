@@ -63,7 +63,7 @@ public class Application extends javafx.application.Application {
     public void stop() {
         threadPoolExecutor.close();
         JSONObject jsonObject = getSettings();
-        saveSettings(jsonObject.getInt("numberOfBatchDownloads"), jsonObject.getInt("numberOfSearchResults"), jsonObject.getString("apiKey"), mainController.GetRemainingDownloadApiRequests());
+        saveSettings(jsonObject.getInt("numberOfBatchDownloads"), jsonObject.getInt("numberOfSearchResults"), jsonObject.getString("apiKey"), mainController.GetRemainingDownloadApiRequests(), jsonObject.getBoolean("useSpecialSearchFilters"));
     }
 
     public static void main(String[] args) throws IOException {
@@ -110,9 +110,11 @@ public class Application extends javafx.application.Application {
                 jsonObject.put("numberOfSearchResults", 10);
                 jsonObject.put("apiKey", "");
                 jsonObject.put("remainingDownloadRequests", 300);
+                jsonObject.put("useSpecialSearchFilters", true);
 
                 outputStream.write(jsonObject.toString().getBytes());
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 logger.error("Error writing jsonObject with default parameters to settingsJSONFile where it didnt exist", e);
                 newError("Error While Writing While Setting Up SettingsJSON", Application::verifySettingsJSONFile);
             }
@@ -129,6 +131,7 @@ public class Application extends javafx.application.Application {
                         jsonObject.put("numberOfSearchResults", 10);
                         jsonObject.put("apiKey", "");
                         jsonObject.put("remainingDownloadRequests", 300);
+                        jsonObject.put("useSpecialSearchFilters", true);
 
                         outputStream.write(jsonObject.toString().getBytes());
                     } catch (Exception e) {
@@ -154,6 +157,10 @@ public class Application extends javafx.application.Application {
                     if (!jsonObject.has("remainingDownloadRequests")) {
                         logger.debug("settingsJSONFile doesnt have \"remainingDownloadRequests\", writing default parameter");
                         jsonObject.put("remainingDownloadRequests", 300);
+                    }
+                    if (!jsonObject.has("useSpecialSearchFilters")) {
+                        logger.debug("settingsJSONFile doesnt have \"useSpecialSearchFilters\", writing default parameter");
+                        jsonObject.put("useSpecialSearchFilters", true);
                     }
 
                     logger.debug("writing verified jsonObject to settingsJSONFile");
@@ -389,7 +396,7 @@ public class Application extends javafx.application.Application {
         }
     }
 
-    public static void saveSettings(int numberOfBatchDownloads, int numberOfSearchResults, String apiKey, int remainingDownloadRequests) {
+    public static void saveSettings(int numberOfBatchDownloads, int numberOfSearchResults, String apiKey, int remainingDownloadRequests, boolean useSpecialSearchFilters) {
         logger.info("saving settings to settingsJSONFile");
         logger.debug("given perameters [numberOfBatchDownloads \"{}\", numberOfSearchResults \"{}\", apiKey \"{}\", remainingDownloadRequests \"{}\"]", numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests);
         logger.debug("reading from settingsJSONFile");
@@ -402,17 +409,18 @@ public class Application extends javafx.application.Application {
             jsonObject.put("numberOfSearchResults", numberOfSearchResults);
             jsonObject.put("apiKey", apiKey);
             jsonObject.put("remainingDownloadRequests", remainingDownloadRequests);
+            jsonObject.put("useSpecialSearchFilters", useSpecialSearchFilters);
 
             logger.debug("writing jsonObject to settingsJSONFile");
             try (OutputStream outputStream = new FileOutputStream(settingsJSONFile)) {
                 outputStream.write(jsonObject.toString().getBytes());
             } catch (Exception e) {
                 logger.error("Error writing to settingsJSONFile", e);
-                newError("Error Writing While Saving Settings", () -> saveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests));
+                newError("Error Writing While Saving Settings", () -> saveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests, useSpecialSearchFilters));
             }
         } catch (Exception e) {
             logger.error("Error while reading form settingsJSONFile", e);
-            newError("Error Reading While Saving Settings", () -> saveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests));
+            newError("Error Reading While Saving Settings", () -> saveSettings(numberOfBatchDownloads, numberOfSearchResults, apiKey, remainingDownloadRequests, useSpecialSearchFilters));
         }
     }
 
@@ -421,11 +429,12 @@ public class Application extends javafx.application.Application {
         String string = "";
         try (InputStream inputStream = new FileInputStream(settingsJSONFile)) {
             string = new String(inputStream.readAllBytes());
-        } catch (Exception e) {
-            newError("Error While Reading Settings File", () -> {
-            });
+        }
+        catch (Exception e) {
+            newError("Error While Reading Settings File", () -> {});
             logger.error("Error while reading settingsJSONFile", e);
         }
+
         return new JSONObject(string);
     }
 
